@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    name: Python ${{ matrix.python }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.11', '3.12', '3.13', '3.14', '3.15']
+    env:
+      PYTHON_VERSION: ${{ matrix.python }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install locked dependencies
+        run: uv sync --frozen --python "$PYTHON_VERSION"
+      - name: Lint and formatting
+        run: |
+          uv run --frozen ruff check .
+          uv run --frozen ruff format --check .
+      - name: Typecheck
+        if: matrix.python == '3.14'
+        run: |
+          uv run --frozen mypy
+          uv run --frozen mypy examples scripts/smoke_wheel.py
+      - name: Test
+        run: uv run --frozen pytest -q -rs
+      - name: Build wheel and sdist with the locked backend
+        run: uv build --no-build-isolation
+      - name: Smoke the installed wheel
+        run: uv run --isolated --no-project --python "$PYTHON_VERSION" --with dist/*.whl python scripts/smoke_wheel.py

@@ -139,15 +139,14 @@ def parse_response(response: httpx.Response, op: Operation) -> Response:
 
 
 def validate_idempotency_key(value: str) -> str:
+    # Same rule as the API: 1 to 255 printable ASCII characters, spaces excluded.
     if (
         not isinstance(value, str)
         or not 1 <= len(value) <= 255
-        or value != value.strip()
-        or any(not 32 <= ord(character) <= 126 for character in value)
+        or any(not 33 <= ord(character) <= 126 for character in value)
     ):
         raise ReverseContactError(
-            "idempotency_key must contain 1 to 255 printable ASCII characters "
-            "with no leading or trailing whitespace"
+            "idempotency_key must contain 1 to 255 printable ASCII characters, without spaces"
         )
     return value
 

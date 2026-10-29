@@ -3,7 +3,7 @@
 from reversecontact import ReverseContact
 
 with ReverseContact() as client:
-    result = client.enrich.person(email="jane@example.com", full_profile=True)
+    result = client.enrich.person(email="jane@example.com")
     if result is None:
         print("No match found")
     elif result.data is not None:

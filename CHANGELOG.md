@@ -1,6 +1,13 @@
 # Changelog
 
-## 0.1.0 (unreleased)
+## 0.1.1 (2026-10-29)
+
+- README rewritten for GitHub and PyPI: links to the documentation, a quickstart that runs as pasted, a table of every resource and method, requirements, versioning and support.
+- An `idempotency_key` that contains a space is refused before the request is sent, as the API refuses it.
+- `JobFailedError.not_found` is also `True` for `phone-not-found`, the outcome of a phone lookup that finds no number.
+- The enrich example no longer passes the deprecated `full_profile` option.
+
+## 0.1.0 (2026-10-29)
 
 - Require Python 3.11 or later and use modern standard-library typing and async deadlines.
 - License the SDK under Apache-2.0.

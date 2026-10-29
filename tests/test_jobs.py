@@ -77,6 +77,7 @@ async def test_contact_job_typed_array(h, method):
         ("company-not-found", True),
         ("data-not-found", True),
         ("email-not-found", True),
+        ("phone-not-found", True),
         ("fetch-data-error", False),
         ("result-unavailable", False),
     ],

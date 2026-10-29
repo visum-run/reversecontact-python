@@ -35,7 +35,7 @@ async def test_generated_key_is_reused_per_call_and_fresh_for_next_call(h, submi
     assert all(json.loads(request.content) == {"firstName": "Jane"} for request in h.requests)
 
 
-@pytest.mark.parametrize("key", ["x", "customer request", "x" * 255])
+@pytest.mark.parametrize("key", ["x", "customer-request:42", "x" * 255])
 @pytest.mark.parametrize("source", ["option", "header", "default", "injected"])
 async def test_caller_keys_are_respected_across_attempts(h, submit, source, key):
     kwargs = {}
@@ -74,7 +74,21 @@ async def test_option_overrides_header_defaults_without_mutating_them(h, submit)
 
 @pytest.mark.parametrize(
     "key",
-    ["", " ", " leading", "trailing ", "a\tb", "a\nb", "\x00", "é", "\x7f", "x" * 256, 42, True],
+    [
+        "",
+        " ",
+        " leading",
+        "trailing ",
+        "inner space",
+        "a\tb",
+        "a\nb",
+        "\x00",
+        "é",
+        "\x7f",
+        "x" * 256,
+        42,
+        True,
+    ],
 )
 @pytest.mark.parametrize("source", ["option", "header", "default"])
 async def test_invalid_key_is_rejected_before_any_request(h, submit, key, source):

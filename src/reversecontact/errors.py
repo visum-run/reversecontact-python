@@ -151,6 +151,7 @@ class JobFailedError(ReverseContactError):
             "person-not-found",
             "company-not-found",
             "email-not-found",
+            "phone-not-found",
         }
         super().__init__(f"Job {job_id} failed: {error_code or 'unknown error'}")
 

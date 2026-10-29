@@ -6,6 +6,7 @@ from urllib.parse import quote
 import pytest
 
 from conftest import ok
+from reversecontact import __version__
 
 ROOT = Path(__file__).resolve().parents[2]
 if not (ROOT / "openapi/public-v2.json").is_file() or not (ROOT / "operations.json").is_file():
@@ -114,7 +115,7 @@ async def test_every_operation_wire_contract(h, operation_id, camel_case):
             if value is not None
         }
     assert request.headers["authorization"] == "Bearer rc_test"
-    assert request.headers["user-agent"].startswith("reversecontact-python/0.1.0")
+    assert request.headers["user-agent"].startswith(f"reversecontact-python/{__version__}")
     assert "x-request-origin" not in request.headers
     assert not re.search(r"\b(make|zapier)\b", request.headers["user-agent"], re.I)
 

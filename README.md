@@ -1,34 +1,76 @@
 # Reverse Contact Python SDK
 
-The official Python SDK for the Reverse Contact API provides typed synchronous and asynchronous clients for all 21 V2 operations. Python 3.11 or later is required.
+[![PyPI version](https://img.shields.io/pypi/v/reversecontact)](https://pypi.org/project/reversecontact/)
+[![Python versions](https://img.shields.io/pypi/pyversions/reversecontact)](https://pypi.org/project/reversecontact/)
+[![CI](https://img.shields.io/github/actions/workflow/status/visum-run/reversecontact-python/ci.yml?branch=main&label=CI)](https://github.com/visum-run/reversecontact-python/actions/workflows/ci.yml)
+[![License](https://img.shields.io/pypi/l/reversecontact)](https://github.com/visum-run/reversecontact-python/blob/main/LICENSE)
 
-## Install
+Reverse Contact is a B2B data API: enrich people and companies, fetch profiles, search people and organizations, and find email addresses and phone numbers.
+
+This is the official Python client for the Reverse Contact V2 API: synchronous and asynchronous clients, typed Pydantic models, automatic retries, cursor pagination and asynchronous jobs.
+
+[Documentation](https://docs.reversecontact.com/sdk/python) · [API reference](https://docs.reversecontact.com/api-reference) · [Get an API key](https://app.reversecontact.com) · [Changelog](https://github.com/visum-run/reversecontact-python/blob/main/CHANGELOG.md)
+
+## Installation
 
 ```bash
 pip install reversecontact
-export RC_API_KEY="your-api-key"
 ```
 
-Keep API keys on your server. Both `rc_*` API keys and `oat_*` tokens work; the SDK does not restrict token prefixes.
+The package also installs with `uv add reversecontact` or `poetry add reversecontact`. Python 3.11 or later is required.
 
 ## Quickstart
 
-Enrich a person from an email address. Lookup methods return `None` for a no-match response, which is free on these routes.
+Create an API key in the [Reverse Contact app](https://app.reversecontact.com) and export it:
+
+```bash
+export RC_API_KEY="your-api-key"
+```
+
+Save this file as `quickstart.py` and run `python quickstart.py`:
 
 ```python
 from reversecontact import ReverseContact
 
-with ReverseContact() as client:
-    response = client.enrich.person(email="jane@example.com", full_profile=True)
+with ReverseContact() as client:  # reads RC_API_KEY
+    response = client.enrich.person(email="jane@example.com")
     if response is None:
         print("No match found")
     elif response.data is not None:
         print(response.data.person)
-        print(response.data.is_full_profile)
-        print(response.quotas)
-        print(response.metadata)
-        print(response.http_response.headers)
+        print("Full profile:", response.data.is_full_profile)
+        print("Request id:", response.metadata.request_id if response.metadata else None)
+        print("Credits used:", response.quotas.credits_consumed if response.quotas else None)
 ```
+
+Lookup methods return `None` for a no-match response, which is free on these routes.
+
+Keep API keys on your server. Both `rc_*` API keys and `oat_*` tokens work; the SDK does not restrict token prefixes.
+
+## Resources
+
+| Resource | Methods | Example |
+| --- | --- | --- |
+| Enrichment | `enrich.person`, `enrich.company` | `client.enrich.company(domain="example.com")` |
+| Cached fetch | `fetch.person`, `fetch.company` | `client.fetch.person(url="https://social.com/in/janedoe")` |
+| Cache checks (free) | `fetch.check_person`, `fetch.check_company` | `client.fetch.check_company(url="https://social.com/company/acme")` |
+| Live fetch (job) | `fetch.person_live`, `fetch.company_live` | `client.fetch.company_live(url="https://social.com/company/acme")` |
+| People search | `search.people`, `search.people_by_prompt`, `search.people_lookalike` | `client.search.people_by_prompt(prompt="Engineers in Paris", per_page=10)` |
+| Company search | `search.organizations`, `search.organizations_by_prompt` | `client.search.organizations(company_name="Acme", per_page=10)` |
+| Search iterators | `search.iter_people`, `search.iter_people_by_prompt`, `search.iter_people_lookalike`, `search.iter_organizations`, `search.iter_organizations_by_prompt` | `client.search.iter_people(first_name="Jane", max_results=10)` |
+| Counts (free) | `search.count_people`, `search.count_organizations` | `client.search.count_organizations(company_name="Acme")` |
+| Filter catalogs (free) | `search.people_fields`, `search.organizations_fields` | `client.search.people_fields()` |
+| Contact discovery (job) | `contact.find_email`, `contact.find_phone` | `client.contact.find_phone(url="https://social.com/in/janedoe")` |
+| Jobs | `jobs.retrieve`, `jobs.wait` | `client.jobs.retrieve("saved-job-id", wait=20)` |
+| Usage (free) | `usage.retrieve` | `client.usage.retrieve().quotas` |
+
+The asynchronous client has the same resources and methods. Credit costs per endpoint are listed in the [API reference](https://docs.reversecontact.com/api-reference).
+
+Path ids are positional. Body and query arguments use snake_case; their exact API camelCase spellings also work. Unknown keyword arguments pass through unchanged. Known nested fields in dictionaries also accept snake_case. Omitted fields stay omitted, and explicit `None` is sent as JSON null in a body. No URL domain is validated locally.
+
+## Usage
+
+### Search
 
 Count before searching. Count calls are free, while search bills for delivered results, so item iterators require an explicit `max_results` budget.
 
@@ -43,6 +85,8 @@ with ReverseContact() as client:
             print(person.id, person.first_name)
 ```
 
+### Live fetch
+
 A live fetch returns a job handle immediately. Save its id before waiting, and reuse the id after a process restart.
 
 ```python
@@ -55,16 +99,38 @@ with ReverseContact() as client:
     # Later: client.jobs.wait(saved_job_id)
 ```
 
-## Asynchronous client
+### Find email addresses and phone numbers
+
+`contact.find_email` and `contact.find_phone` return a job handle. Poll with `job.wait()` or save `job.id` and resume with `client.jobs.wait(saved_id)`.
+
+#### Safe retries
+
+Each contact submit sends one UUID v4 `Idempotency-Key`, reused on every retry of that call. The server retains a successful acknowledgement for 24 hours per workspace and endpoint. Reusing the same key and body returns that acknowledgement without starting or charging another job. `job.replayed` reports whether this happened; the raw header is also available in `job.http_response.headers`.
+
+Persist your own key with the request body before submitting to safely retry after a process restart. Pass it as `idempotency_key` or in `headers={"Idempotency-Key": saved_key}`; the option takes precedence. Keys must contain 1 to 255 printable ASCII characters, without spaces. Invalid keys raise `ReverseContactError` before sending. A changed body with the same key raises `UnprocessableEntityError` with code `IDEMPOTENCY_KEY_REUSED`. An in-flight request returns `IDEMPOTENCY_KEY_IN_USE` and is retried after `Retry-After`, within `max_retries`.
+
+```python
+with ReverseContact() as client:
+    job = client.contact.find_email(
+        first_name="Jane",
+        last_name="Doe",
+        company_domain="example.com",
+        idempotency_key="saved-contact-request-123",
+    )
+    print(job.id, job.replayed)
+```
+
+### Asynchronous client
 
 The asynchronous client has the same resource methods and keyword arguments. Await individual calls and page retrievals; use `async for` for item iterators.
 
 ```python
 import asyncio
+
 from reversecontact import AsyncReverseContact
 
 
-async def main():
+async def main() -> None:
     async with AsyncReverseContact() as client:
         response = await client.enrich.company(domain="example.com")
         print(response.data if response else "No match found")
@@ -110,45 +176,6 @@ Use `client.with_options(timeout=30, max_retries=0)` to copy client options whil
 
 Debug logging is off by default. Set `RC_LOG=debug` before constructing a client, or configure `logging.getLogger("reversecontact")` at `logging.DEBUG`. When no logging handler is configured, `RC_LOG=debug` adds a stderr handler. Diagnostics report method, path, status, attempt, retry delay and request id. API keys, request bodies and query values are excluded.
 
-## Resource reference
-
-Path ids are positional. Body and query arguments use snake_case; their exact API camelCase spellings also work. Unknown keyword arguments pass through unchanged. Known nested fields in dictionaries also accept snake_case. Omitted fields stay omitted, and explicit `None` is sent as JSON null in a body. No URL domain is validated locally.
-
-| Resource | Methods | Example |
-| --- | --- | --- |
-| Enrichment | `enrich.person`, `enrich.company` | `client.enrich.company(domain="example.com")` |
-| Cached fetch | `fetch.person`, `fetch.company` | `client.fetch.person(url="https://social.com/in/janedoe")` |
-| Cache checks | `fetch.check_person`, `fetch.check_company` | `client.fetch.check_company(url="https://social.com/company/acme")` |
-| Live fetch | `fetch.person_live`, `fetch.company_live` | `client.fetch.company_live(url="https://social.com/company/acme")` |
-| People search | `search.people`, `search.people_by_prompt`, `search.people_lookalike` | `client.search.people_by_prompt(prompt="Engineers in Paris", per_page=10)` |
-| Company search | `search.organizations`, `search.organizations_by_prompt` | `client.search.organizations(company_name="Acme", per_page=10)` |
-| Counts | `search.count_people`, `search.count_organizations` | `client.search.count_organizations(company_name="Acme")` |
-| Filter catalogs | `search.people_fields`, `search.organizations_fields` | `client.search.people_fields()` |
-| Contact discovery | `contact.find_email`, `contact.find_phone` | `client.contact.find_phone(url="https://social.com/in/janedoe")` |
-| Jobs | `jobs.retrieve`, `jobs.wait` | `client.jobs.retrieve("saved-job-id", wait=20)` |
-| Usage | `usage.retrieve` | `client.usage.retrieve().quotas` |
-
-## Contact finders
-
-`contact.find_email` and `contact.find_phone` return a job handle. Poll with `job.wait()` or save `job.id` and resume with `client.jobs.wait(saved_id)`.
-
-### Safe retries
-
-Each contact submit sends one UUID v4 `Idempotency-Key`, reused on every retry of that call. The server retains a successful acknowledgement for 24 hours per workspace and endpoint. Reusing the same key and body returns that acknowledgement without starting or charging another job. `job.replayed` reports whether this happened; the raw header is also available in `job.http_response.headers`.
-
-Persist your own key with the request body before submitting to safely retry after a process restart. Pass it as `idempotency_key` or in `headers={"Idempotency-Key": saved_key}`; the option takes precedence. Keys must contain 1 to 255 printable ASCII characters with no leading or trailing whitespace. Invalid keys raise `ReverseContactError` before sending. A changed body with the same key raises `UnprocessableEntityError` with code `IDEMPOTENCY_KEY_REUSED`. An in-flight request returns `IDEMPOTENCY_KEY_IN_USE` and is retried after `Retry-After`, within `max_retries`.
-
-```python
-with ReverseContact() as client:
-    job = client.contact.find_email(
-        first_name="Jane",
-        last_name="Doe",
-        company_domain="example.com",
-        idempotency_key="saved-contact-request-123",
-    )
-    print(job.id, job.replayed)
-```
-
 ## Responses and types
 
 Normal calls return `Result[T]` with `.data`, `.quotas`, `.metadata`, and `.http_response`. Enrichment nests the profile under `.data.person` or `.data.company`; `.data.is_full_profile` identifies its shape. Cached fetches return the profile directly in `.data`. Usage returns `.data is None`; its information is in `.quotas`.
@@ -160,7 +187,7 @@ from reversecontact import Person
 
 person = Person.model_validate({"firstName": "Jane", "futureField": 0})
 assert person.first_name == "Jane"
-assert person.model_extra["futureField"] == 0
+assert person.model_extra == {"futureField": 0}
 assert person.to_dict() == {"firstName": "Jane", "futureField": 0}
 ```
 
@@ -195,7 +222,22 @@ with ReverseContact() as client:
         print(error.status, error.code, error.request_id, error.details)
 ```
 
-HTTP classes are `BadRequestError` (400), `AuthenticationError` (401), `InsufficientCreditsError` (402), `PermissionDeniedError` (403), `NotFoundError` (404), `ConflictError` (409), `GoneError` (410), `UnprocessableEntityError` (422), `RateLimitError` (429), `UnavailableForLegalReasonsError` (451), and `InternalServerError` (5xx). Unknown statuses become `APIError`. `DailyLimitError` specializes `RateLimitError`; `KeyCreditLimitError` takes precedence for the key-credit error code and exposes `.period`, `.limit`, `.used`, and `.required`.
+| HTTP status | Error class |
+| --- | --- |
+| 400 | `BadRequestError` |
+| 401 | `AuthenticationError` |
+| 402 | `InsufficientCreditsError` |
+| 403 | `PermissionDeniedError` |
+| 404 | `NotFoundError` (except lookup no-match) |
+| 409 | `ConflictError` |
+| 410 | `GoneError` |
+| 422 | `UnprocessableEntityError` |
+| 429 | `RateLimitError`, or `DailyLimitError` for daily limits |
+| 451 | `UnavailableForLegalReasonsError` |
+| 5xx | `InternalServerError` |
+| Other | `APIError` |
+
+`DailyLimitError` specializes `RateLimitError`; `KeyCreditLimitError` takes precedence for the key-credit error code and exposes `.period`, `.limit`, `.used`, and `.required`.
 
 The SDK retries ordinary 429s, HTTP 500/502/503/504, and connection failures. It honors server retry hints, otherwise uses exponential backoff of 2, 4, 8, then 15 seconds, plus up to 250 milliseconds of jitter. For 429s, `details.retryAfter` takes precedence over `Retry-After`. If any of `Retry-After`, `details.retryAfter`, or `details.retryAfterSeconds` exceeds 60 seconds, the error is raised immediately, regardless of priority. Daily limits and key credit limits are never retried. The only retryable 409 is `IDEMPOTENCY_KEY_IN_USE` on a contact submit; it honors `Retry-After`. Other 4xx errors are never retried.
 
@@ -224,7 +266,7 @@ delivery = parse_webhook_delivery(
 print(delivery.webhook_id, delivery.is_error, delivery.data)
 ```
 
-Use an HTTPS endpoint, respond with 2xx within 10 seconds, and process the delivery asynchronously. Deduplicate on `webhookId` because rare duplicates can occur. You can still poll a job that uses push delivery.
+Use an HTTPS endpoint, respond with 2xx within 10 seconds, and process the delivery asynchronously. Deduplicate on `webhookId` because rare duplicates can occur. You can still poll a job that uses push delivery. See the [webhooks guide](https://docs.reversecontact.com/guides/webhooks).
 
 ## Best practices
 
@@ -235,11 +277,34 @@ Use an HTTPS endpoint, respond with 2xx within 10 seconds, and process the deliv
 - Persist job ids before waiting, and include request ids when contacting support.
 - Observe quotas returned by the API; do not assume a fixed credit charge for every workspace.
 
-Read the [API documentation](https://docs.reversecontact.com), [error and retry guide](https://docs.reversecontact.com/docs/guides/errors-retries), [polling guide](https://docs.reversecontact.com/docs/guides/polling), and [production checklist](https://docs.reversecontact.com/docs/guides/production-checklist).
+Read the [error and retry guide](https://docs.reversecontact.com/guides/errors-retries), [polling guide](https://docs.reversecontact.com/guides/polling), [credits guide](https://docs.reversecontact.com/guides/credits), and [production checklist](https://docs.reversecontact.com/guides/production-checklist).
 
-## Development
+## Requirements
 
-Dependencies are managed with uv. Run the following checks from the repository root (or `sdks/python` in the monorepo). The committed models and resource facades work without external files. In the monorepo, `uv run --frozen python scripts/generate.py` regenerates them from `../openapi/public-v2.json` and `../operations.json`; add `--check` to verify freshness. In the public repository, generation and snapshot-dependent tests skip with an explicit reason because these inputs are not published. Unit tests, lint, type checks, builds and wheel smoke checks run in both repositories. Handwritten quota models follow runtime nullability rather than the snapshot's stricter declarations.
+- Python 3.11 or later. CI covers Python 3.11 through 3.15.
+- Runtime dependencies: [httpx](https://www.python-httpx.org) (0.27 or later, below 1) and [Pydantic](https://docs.pydantic.dev) v2 (2.7 or later).
+- The package is fully typed and ships `py.typed`.
+
+A Python version stays supported until its end of life; the next minor release of the SDK then raises the minimum version.
+
+## Versioning
+
+The SDK follows [semantic versioning](https://semver.org). While the version is 0.x, a minor release (for example 0.1 to 0.2) can change the API; patch releases do not. Pin a compatible range such as `reversecontact~=0.1.0` (which allows 0.1.x only), and read the [changelog](https://github.com/visum-run/reversecontact-python/blob/main/CHANGELOG.md) before moving to a new minor version.
+
+## Support
+
+- SDK bugs and feature requests: [open an issue](https://github.com/visum-run/reversecontact-python/issues).
+- Questions about your account, credits, or API results: email [support@reversecontact.com](mailto:support@reversecontact.com).
+
+Include the request id (`response.metadata.request_id`, or `error.request_id`) and any job id.
+
+## Contributing
+
+Issues and pull requests are welcome. This repository is published from Reverse Contact's main codebase with each release: an accepted pull request is applied there first, then reaches this repository and PyPI with the next release.
+
+### Development
+
+Dependencies are managed with uv. Run the following checks from the repository root:
 
 ```bash
 uv sync --frozen
@@ -252,12 +317,10 @@ uv build --no-build-isolation
 uv run --isolated --no-project --with dist/*.whl python scripts/smoke_wheel.py
 ```
 
-Tests mock every request. The optional `RC_SDK_LIVE=1 uv run --frozen pytest -q tests/test_live.py` smoke calls only free endpoints and uses `RC_BASE_URL` and `RC_API_KEY`; run it against an authorized environment. Examples can consume credits and are never run by the test suite.
+The models and resource facades are generated from the API's OpenAPI description and committed, so they work without external files. The generator (`uv run --frozen python scripts/generate.py`, with `--check` to verify freshness) and the tests that compare the SDK with that description need input files this repository does not include: they skip with an explicit reason, and unit tests, lint, type checks, builds and wheel smoke checks run here. Handwritten quota models follow runtime nullability rather than the stricter OpenAPI declarations.
 
-## Contributing
-
-This repository is published from the Reverse Contact monorepo. Report issues in [this repository](https://github.com/visum-run/reversecontact-python/issues). Pull requests are reviewed here and merged upstream before the next release is published.
+Tests mock every request. The optional `RC_SDK_LIVE=1 uv run --frozen pytest -q tests/test_live.py` smoke calls only free endpoints and uses `RC_BASE_URL` and `RC_API_KEY`; run it against an authorized environment. [Examples](https://github.com/visum-run/reversecontact-python/tree/main/examples) can consume credits and are never run by the test suite.
 
 ## License
 
-This SDK is licensed under [Apache-2.0](LICENSE).
+Apache-2.0. See [LICENSE](https://github.com/visum-run/reversecontact-python/blob/main/LICENSE).

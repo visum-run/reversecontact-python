@@ -934,6 +934,7 @@ class Contact(SyncResource):
         self,
         *,
         url: (str | NotGiven | None) = NOT_GIVEN,
+        id: (str | NotGiven | None) = NOT_GIVEN,
         full_name: (str | NotGiven | None) = NOT_GIVEN,
         first_name: (str | NotGiven | None) = NOT_GIVEN,
         last_name: (str | NotGiven | None) = NOT_GIVEN,
@@ -953,6 +954,7 @@ class Contact(SyncResource):
             parameters(
                 {
                     "url": url,
+                    "id": id,
                     "fullName": full_name,
                     "firstName": first_name,
                     "lastName": last_name,
@@ -970,6 +972,7 @@ class Contact(SyncResource):
         self,
         *,
         url: (str | NotGiven | None) = NOT_GIVEN,
+        id: (str | NotGiven | None) = NOT_GIVEN,
         full_name: (str | NotGiven | None) = NOT_GIVEN,
         first_name: (str | NotGiven | None) = NOT_GIVEN,
         last_name: (str | NotGiven | None) = NOT_GIVEN,
@@ -988,6 +991,7 @@ class Contact(SyncResource):
             parameters(
                 {
                     "url": url,
+                    "id": id,
                     "fullName": full_name,
                     "firstName": first_name,
                     "lastName": last_name,

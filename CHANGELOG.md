@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.5 (2026-10-29)
+
+- `contact.find_email` and `contact.find_phone` accept `id`, a person id (`prs_…`) from a search, fetch or enrich result, in place of `url` or a name with company domain.
+
 ## 0.1.4 (2026-10-29)
 
 - Counts, page sizes, employee and follower counts, founding years, tenure filters, rate limit windows and `execution_time_ms` are typed `int`, as the API now documents them as integers. Credit amounts stay `int | float`.

@@ -70,6 +70,13 @@ async def test_contact_job_typed_array(h, method):
     assert h.requests[-1].url.params["wait"] == "10"
 
 
+@pytest.mark.parametrize("method", ["find_email", "find_phone"])
+async def test_contact_job_accepts_a_person_id(h, method):
+    h.responses.append(ok({"webhookId": "job_test"}))
+    await h.call(getattr(h.client.contact, method), id="prs_01jbd5vewyenebxgaz869ffe5t")
+    assert json.loads(h.requests[0].content) == {"id": "prs_01jbd5vewyenebxgaz869ffe5t"}
+
+
 @pytest.mark.parametrize(
     "code,not_found",
     [

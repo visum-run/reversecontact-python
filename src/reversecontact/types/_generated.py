@@ -773,6 +773,7 @@ class EnrichCompanyBody(Model):
 
 class ContactEmailBody(Model):
     url: str | None = Field(None, alias="url")
+    id: str | None = Field(None, alias="id")
     full_name: str | None = Field(None, alias="fullName")
     first_name: str | None = Field(None, alias="firstName")
     last_name: str | None = Field(None, alias="lastName")
@@ -783,6 +784,7 @@ class ContactEmailBody(Model):
 
 class ContactPhoneBody(Model):
     url: str | None = Field(None, alias="url")
+    id: str | None = Field(None, alias="id")
     full_name: str | None = Field(None, alias="fullName")
     first_name: str | None = Field(None, alias="firstName")
     last_name: str | None = Field(None, alias="lastName")

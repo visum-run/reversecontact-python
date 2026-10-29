@@ -107,6 +107,12 @@ with ReverseContact(api_key=os.environ["RC_API_KEY"]) as client:
 
 `contact.find_email` and `contact.find_phone` return a job handle. Poll with `job.wait()` or save `job.id` and resume with `client.jobs.wait(saved_id)`.
 
+Each finder takes one person: `url`, `id` (a `prs_…` person id from a search, fetch or enrich result), or a name with `company_domain`. An id that matches no person raises `UnprocessableEntityError` before any job starts.
+
+```python
+job = client.contact.find_email(id="prs_01jbd5vewyenebxgaz869ffe5t")
+```
+
 #### Safe retries
 
 Each contact submit sends one UUID v4 `Idempotency-Key`, reused on every retry of that call. The server retains a successful acknowledgement for 24 hours per workspace and endpoint. Reusing the same key and body returns that acknowledgement without starting or charging another job. `job.replayed` reports whether this happened; the raw header is also available in `job.http_response.headers`.

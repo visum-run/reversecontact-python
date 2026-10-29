@@ -1,12 +1,13 @@
 """Find contact details asynchronously using RC_API_KEY."""
 
 import asyncio
+import os
 
 from reversecontact import AsyncReverseContact
 
 
 async def main() -> None:
-    async with AsyncReverseContact() as client:
+    async with AsyncReverseContact(api_key=os.environ["RC_API_KEY"]) as client:
         job = await client.contact.find_email(
             first_name="Jane", last_name="Doe", company_domain="example.com"
         )

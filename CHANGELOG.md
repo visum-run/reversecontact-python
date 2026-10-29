@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2 (2026-10-29)
+
+- The README and the examples pass the API key explicitly: `ReverseContact(api_key=os.environ["RC_API_KEY"])`. Without `api_key`, the client still reads `RC_API_KEY`.
+
 ## 0.1.1 (2026-10-29)
 
 - README rewritten for GitHub and PyPI: links to the documentation, a quickstart that runs as pasted, a table of every resource and method, requirements, versioning and support.

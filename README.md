@@ -30,9 +30,11 @@ export RC_API_KEY="your-api-key"
 Save this file as `quickstart.py` and run `python quickstart.py`:
 
 ```python
+import os
+
 from reversecontact import ReverseContact
 
-with ReverseContact() as client:  # reads RC_API_KEY
+with ReverseContact(api_key=os.environ["RC_API_KEY"]) as client:
     response = client.enrich.person(email="jane@example.com")
     if response is None:
         print("No match found")
@@ -44,6 +46,8 @@ with ReverseContact() as client:  # reads RC_API_KEY
 ```
 
 Lookup methods return `None` for a no-match response, which is free on these routes.
+
+Pass your key as `api_key`, from any server-side source: an environment variable as above, a secret manager, or one client per key when you serve several workspaces. When `api_key` is omitted, the client reads `RC_API_KEY`.
 
 Keep API keys on your server. Both `rc_*` API keys and `oat_*` tokens work; the SDK does not restrict token prefixes.
 
@@ -75,7 +79,7 @@ Path ids are positional. Body and query arguments use snake_case; their exact AP
 Count before searching. Count calls are free, while search bills for delivered results, so item iterators require an explicit `max_results` budget.
 
 ```python
-with ReverseContact() as client:
+with ReverseContact(api_key=os.environ["RC_API_KEY"]) as client:
     count = client.search.count_people(current_position_title="Engineer")
     print(count.data.count if count.data else None)
     for person in client.search.iter_people(
@@ -90,7 +94,7 @@ with ReverseContact() as client:
 A live fetch returns a job handle immediately. Save its id before waiting, and reuse the id after a process restart.
 
 ```python
-with ReverseContact() as client:
+with ReverseContact(api_key=os.environ["RC_API_KEY"]) as client:
     job = client.fetch.person_live(url="https://social.com/in/janedoe")
     print("Save job id:", job.id)
     snapshot = job.wait(timeout=1800)
@@ -110,7 +114,7 @@ Each contact submit sends one UUID v4 `Idempotency-Key`, reused on every retry o
 Persist your own key with the request body before submitting to safely retry after a process restart. Pass it as `idempotency_key` or in `headers={"Idempotency-Key": saved_key}`; the option takes precedence. Keys must contain 1 to 255 printable ASCII characters, without spaces. Invalid keys raise `ReverseContactError` before sending. A changed body with the same key raises `UnprocessableEntityError` with code `IDEMPOTENCY_KEY_REUSED`. An in-flight request returns `IDEMPOTENCY_KEY_IN_USE` and is retried after `Retry-After`, within `max_retries`.
 
 ```python
-with ReverseContact() as client:
+with ReverseContact(api_key=os.environ["RC_API_KEY"]) as client:
     job = client.contact.find_email(
         first_name="Jane",
         last_name="Doe",
@@ -126,12 +130,13 @@ The asynchronous client has the same resource methods and keyword arguments. Awa
 
 ```python
 import asyncio
+import os
 
 from reversecontact import AsyncReverseContact
 
 
 async def main() -> None:
-    async with AsyncReverseContact() as client:
+    async with AsyncReverseContact(api_key=os.environ["RC_API_KEY"]) as client:
         response = await client.enrich.company(domain="example.com")
         print(response.data if response else "No match found")
         async for person in client.search.iter_people(first_name="Jane", max_results=10):
@@ -152,11 +157,13 @@ asyncio.run(main())
 The default base URL is `https://api.reversecontact.com`. Override it with `RC_BASE_URL` or `base_url`; paths already include `/v2`.
 
 ```python
+import os
+
 import httpx
 from reversecontact import ReverseContact
 
 with ReverseContact(
-    api_key="your-api-key",  # Defaults to RC_API_KEY
+    api_key=os.environ["RC_API_KEY"],  # Without it, the client reads RC_API_KEY
     base_url="https://api.reversecontact.com",  # Defaults to RC_BASE_URL
     timeout=httpx.Timeout(90.0),  # Seconds per attempt
     max_retries=4,  # Four retries after the first attempt
@@ -198,7 +205,7 @@ assert person.to_dict() == {"firstName": "Jane", "futureField": 0}
 Search methods return `Page[T]` or `AsyncPage[T]`. A page exposes `.data` as an item array, `.next_cursor`, `.has_next_page()`, and `.get_next_page()`, which returns `None` after the last page. Quotas and request metadata describe that page. Pages also expose `.count`, `.per_page`, and `.interpretation`. All additional payload fields are retained in `.extras`. Pages and iterators copy their filters, including nested dictionaries, so later caller mutations do not alter subsequent requests.
 
 ```python
-with ReverseContact() as client:
+with ReverseContact(api_key=os.environ["RC_API_KEY"]) as client:
     page = client.search.people(first_name="Jane", per_page=10)
     if page.has_next_page():
         next_page = page.get_next_page()  # Another potentially billed request
@@ -211,9 +218,11 @@ Search helpers are `iter_people`, `iter_people_by_prompt`, `iter_people_lookalik
 All SDK errors inherit from `ReverseContactError`. API errors carry `.status`, `.code`, `.message`, `.details`, `.request_id`, `.headers`, `.body`, and `.http_response`. Validation details and suggestions remain intact. Non-JSON gateway failures become typed HTTP errors instead of JSON parsing exceptions.
 
 ```python
+import os
+
 from reversecontact import APIError, DailyLimitError, KeyCreditLimitError, ReverseContact
 
-with ReverseContact() as client:
+with ReverseContact(api_key=os.environ["RC_API_KEY"]) as client:
     try:
         client.search.people(first_name="Jane", per_page=5)
     except (DailyLimitError, KeyCreditLimitError) as error:

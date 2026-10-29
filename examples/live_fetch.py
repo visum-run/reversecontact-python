@@ -1,8 +1,10 @@
 """Save the job id before waiting so the job can be resumed after a restart."""
 
+import os
+
 from reversecontact import JobTimeoutError, ReverseContact
 
-with ReverseContact() as client:
+with ReverseContact(api_key=os.environ["RC_API_KEY"]) as client:
     job = client.fetch.person_live(url="https://social.com/in/janedoe")
     print("Save this job id:", job.id)
     try:

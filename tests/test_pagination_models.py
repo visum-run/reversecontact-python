@@ -1,5 +1,6 @@
 import json
 
+import httpx
 import pytest
 
 import reversecontact as rc
@@ -40,6 +41,37 @@ async def test_page_and_next_page(h):
         "cursor": "next",
     }
     assert h.requests[1].headers["x-page"] == "same"
+
+
+async def test_integers_stay_integers(h):
+    # The API spec types most numbers as `number`: an integer it sends must not come back as 2.0.
+    h.responses.append(
+        httpx.Response(
+            200,
+            json={
+                "data": {
+                    "data": [
+                        {"firstName": "Jane", "followersCount": 1200, "connectionsCount": 2.5}
+                    ],
+                    "metadata": {"count": 21216014, "perPage": 1, "nextCursor": None},
+                },
+                "quotas": {
+                    "creditsConsumed": 1,
+                    "workspace": {"credits": {"left": 644401}, "minuteRateLimit": {"left": 2990}},
+                },
+                "metadata": {"requestId": "req_test", "executionTimeMs": 12},
+            },
+        )
+    )
+    page = await h.call(h.client.search.people, first_name="Jane", per_page=1)
+    assert type(page.count) is int and page.count == 21216014
+    assert type(page.per_page) is int
+    assert type(page.quotas.credits_consumed) is int
+    assert type(page.quotas.workspace.credits.left) is int
+    assert type(page.quotas.workspace.minute_rate_limit.left) is int
+    assert type(page.metadata.execution_time_ms) is int
+    assert type(page.data[0].followers_count) is int
+    assert type(page.data[0].connections_count) is float
 
 
 @pytest.mark.parametrize(

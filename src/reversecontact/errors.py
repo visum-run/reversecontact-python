@@ -139,7 +139,7 @@ class JobFailedError(ReverseContactError):
         self,
         job_id: str,
         error_code: str | None,
-        credits_consumed: float | None,
+        credits_consumed: int | float | None,
         result: object,
     ) -> None:
         self.job_id = job_id

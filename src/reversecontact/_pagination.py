@@ -95,8 +95,8 @@ class AsyncPage(PageBase[T]):
         return await self._fetch(self.next_cursor) if self.next_cursor is not None else None
 
 
-def number(value: object) -> float | None:
-    return float(value) if isinstance(value, (int, float)) and not isinstance(value, bool) else None
+def number(value: object) -> int | float | None:
+    return value if isinstance(value, (int, float)) and not isinstance(value, bool) else None
 
 
 def iteration_params(

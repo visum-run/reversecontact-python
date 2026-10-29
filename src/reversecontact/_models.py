@@ -14,16 +14,16 @@ class Model(BaseModel):
 
 
 class LimitInfo(Model):
-    limit: float | None = None
-    used: float | None = None
-    left: float | None = None
+    limit: int | float | None = None
+    used: int | float | None = None
+    left: int | float | None = None
     next_reset: str | None = Field(None, alias="nextReset")
 
 
 class Credits(Model):
-    total: float | None = None
-    used: float | None = None
-    left: float | None = None
+    total: int | float | None = None
+    used: int | float | None = None
+    left: int | float | None = None
 
 
 class WorkspaceQuota(Model):
@@ -49,14 +49,14 @@ class KeyQuota(Model):
 
 
 class Quotas(Model):
-    credits_consumed: float | None = Field(None, alias="creditsConsumed")
+    credits_consumed: int | float | None = Field(None, alias="creditsConsumed")
     workspace: WorkspaceQuota | None = None
     key: KeyQuota | None = None
 
 
 class Metadata(Model):
     request_id: str | None = Field(None, alias="requestId")
-    execution_time_ms: float | None = Field(None, alias="executionTimeMs")
+    execution_time_ms: int | float | None = Field(None, alias="executionTimeMs")
     updated_at: str | None = Field(None, alias="updatedAt")
 
 
@@ -81,7 +81,7 @@ class JobSnapshot(Model, Generic[T]):
     result: T | None = None
     event_type: str | None = Field(None, alias="eventType")
     error_code: str | None = Field(None, alias="errorCode")
-    credits_consumed: float | None = Field(None, alias="creditsConsumed")
+    credits_consumed: int | float | None = Field(None, alias="creditsConsumed")
     delivery_status: str | None = Field(None, alias="deliveryStatus")
     created_at: str | None = Field(None, alias="createdAt")
 

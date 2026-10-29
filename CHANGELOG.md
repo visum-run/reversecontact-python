@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.3 (2026-10-29)
+
+- Integers stay integers: counts, credits, quotas, page sizes and every other numeric field keep the type the API sent (`int` for `2`, `float` for `2.5`) instead of always becoming `float` (`2.0`).
+
 ## 0.1.2 (2026-10-29)
 
 - The README and the examples pass the API key explicitly: `ReverseContact(api_key=os.environ["RC_API_KEY"])`. Without `api_key`, the client still reads `RC_API_KEY`.

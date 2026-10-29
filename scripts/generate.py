@@ -78,7 +78,7 @@ def annotation(schema, name, *, request=False):
     return {
         "string": "str",
         "integer": "int",
-        "number": "float",
+        "number": "int | float",
         "boolean": "bool",
         "null": "None",
     }.get(kind, "object")

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.4 (2026-10-29)
+
+- Counts, page sizes, employee and follower counts, founding years, tenure filters, rate limit windows and `execution_time_ms` are typed `int`, as the API now documents them as integers. Credit amounts stay `int | float`.
+
 ## 0.1.3 (2026-10-29)
 
 - Integers stay integers: counts, credits, quotas, page sizes and every other numeric field keep the type the API sent (`int` for `2`, `float` for `2.5`) instead of always becoming `float` (`2.0`).

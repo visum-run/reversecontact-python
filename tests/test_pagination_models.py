@@ -44,20 +44,24 @@ async def test_page_and_next_page(h):
 
 
 async def test_integers_stay_integers(h):
-    # The API spec types most numbers as `number`: an integer it sends must not come back as 2.0.
+    # Credit amounts are `number` in the API spec: an integer must not come back as 2.0,
+    # while a decimal stays a float. Counts and sizes are `integer` and come back as int.
     h.responses.append(
         httpx.Response(
             200,
             json={
                 "data": {
                     "data": [
-                        {"firstName": "Jane", "followersCount": 1200, "connectionsCount": 2.5}
+                        {"firstName": "Jane", "followersCount": 1200, "connectionsCount": 500}
                     ],
                     "metadata": {"count": 21216014, "perPage": 1, "nextCursor": None},
                 },
                 "quotas": {
                     "creditsConsumed": 1,
-                    "workspace": {"credits": {"left": 644401}, "minuteRateLimit": {"left": 2990}},
+                    "workspace": {
+                        "credits": {"total": 1000, "left": 644401.5},
+                        "minuteRateLimit": {"left": 2990},
+                    },
                 },
                 "metadata": {"requestId": "req_test", "executionTimeMs": 12},
             },
@@ -67,11 +71,12 @@ async def test_integers_stay_integers(h):
     assert type(page.count) is int and page.count == 21216014
     assert type(page.per_page) is int
     assert type(page.quotas.credits_consumed) is int
-    assert type(page.quotas.workspace.credits.left) is int
+    assert type(page.quotas.workspace.credits.total) is int
+    assert type(page.quotas.workspace.credits.left) is float
     assert type(page.quotas.workspace.minute_rate_limit.left) is int
     assert type(page.metadata.execution_time_ms) is int
     assert type(page.data[0].followers_count) is int
-    assert type(page.data[0].connections_count) is float
+    assert type(page.data[0].connections_count) is int
 
 
 @pytest.mark.parametrize(

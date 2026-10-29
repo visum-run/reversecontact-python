@@ -48,8 +48,8 @@ class PersonFull(Model):
     photo_url: str | None = Field(None, alias="photoUrl")
     background_url: str | None = Field(None, alias="backgroundUrl")
     creation_date: str | None = Field(None, alias="creationDate")
-    followers_count: int | float | None = Field(None, alias="followersCount")
-    connections_count: int | float | None = Field(None, alias="connectionsCount")
+    followers_count: int | None = Field(None, alias="followersCount")
+    connections_count: int | None = Field(None, alias="connectionsCount")
     location: PersonLocation | None = Field(None, alias="location")
     current_position: PersonFullCurrentPosition | None = Field(None, alias="currentPosition")
     experience: builtins.list[PersonFullExperienceItem | None] | None = Field(
@@ -152,8 +152,8 @@ class EnrichedCompanyLight(Model):
     public_id: str | None = Field(None, alias="publicId")
     linkedin_id: str | None = Field(None, alias="linkedinId")
     linkedin_url: str | None = Field(None, alias="linkedinUrl")
-    employees_count: int | float | None = Field(None, alias="employeesCount")
-    followers_count: int | float | None = Field(None, alias="followersCount")
+    employees_count: int | None = Field(None, alias="employeesCount")
+    followers_count: int | None = Field(None, alias="followersCount")
     employee_count_range: EnrichedCompanyLightEmployeeCountRange | None = Field(
         None, alias="employeeCountRange"
     )
@@ -165,8 +165,8 @@ class EnrichedCompanyLight(Model):
 
 
 class EnrichedCompanyLightEmployeeCountRange(Model):
-    start: int | float | None = Field(None, alias="start")
-    end: int | float | None = Field(None, alias="end")
+    start: int | None = Field(None, alias="start")
+    end: int | None = Field(None, alias="end")
 
 
 class EnrichedCompanyLightLocation(Model):
@@ -180,8 +180,8 @@ class CompanyFull(Model):
     linkedin_id: str | None = Field(None, alias="linkedinId")
     public_id: str | None = Field(None, alias="publicId")
     linkedin_url: str | None = Field(None, alias="linkedinUrl")
-    employees_count: int | float | None = Field(None, alias="employeesCount")
-    followers_count: int | float | None = Field(None, alias="followersCount")
+    employees_count: int | None = Field(None, alias="employeesCount")
+    followers_count: int | None = Field(None, alias="followersCount")
     employee_count_range: CompanyFullEmployeeCountRange | None = Field(
         None, alias="employeeCountRange"
     )
@@ -201,8 +201,8 @@ class CompanyFull(Model):
 
 
 class CompanyFullEmployeeCountRange(Model):
-    start: int | float | None = Field(None, alias="start")
-    end: int | float | None = Field(None, alias="end")
+    start: int | None = Field(None, alias="start")
+    end: int | None = Field(None, alias="end")
 
 
 class CompanyFullHeadquarter(Model):
@@ -215,7 +215,7 @@ class CompanyFullHeadquarter(Model):
 
 
 class CompanyFullFoundedOn(Model):
-    year: int | float | None = Field(None, alias="year")
+    year: int | None = Field(None, alias="year")
 
 
 class CompanyFullLocationsItem(Model):
@@ -244,8 +244,8 @@ class EnrichedPersonFull(Model):
     photo_url: str | None = Field(None, alias="photoUrl")
     background_url: str | None = Field(None, alias="backgroundUrl")
     creation_date: str | None = Field(None, alias="creationDate")
-    followers_count: int | float | None = Field(None, alias="followersCount")
-    connections_count: int | float | None = Field(None, alias="connectionsCount")
+    followers_count: int | None = Field(None, alias="followersCount")
+    connections_count: int | None = Field(None, alias="connectionsCount")
     location: PersonLocation | None = Field(None, alias="location")
     current_position: EnrichedPersonFullCurrentPosition | None = Field(
         None, alias="currentPosition"
@@ -365,8 +365,8 @@ class EnrichedCompanyFull(Model):
     linkedin_id: str | None = Field(None, alias="linkedinId")
     public_id: str | None = Field(None, alias="publicId")
     linkedin_url: str | None = Field(None, alias="linkedinUrl")
-    employees_count: int | float | None = Field(None, alias="employeesCount")
-    followers_count: int | float | None = Field(None, alias="followersCount")
+    employees_count: int | None = Field(None, alias="employeesCount")
+    followers_count: int | None = Field(None, alias="followersCount")
     employee_count_range: EnrichedCompanyFullEmployeeCountRange | None = Field(
         None, alias="employeeCountRange"
     )
@@ -389,8 +389,8 @@ class EnrichedCompanyFull(Model):
 
 
 class EnrichedCompanyFullEmployeeCountRange(Model):
-    start: int | float | None = Field(None, alias="start")
-    end: int | float | None = Field(None, alias="end")
+    start: int | None = Field(None, alias="start")
+    end: int | None = Field(None, alias="end")
 
 
 class EnrichedCompanyFullHeadquarter(Model):
@@ -403,7 +403,7 @@ class EnrichedCompanyFullHeadquarter(Model):
 
 
 class EnrichedCompanyFullFoundedOn(Model):
-    year: int | float | None = Field(None, alias="year")
+    year: int | None = Field(None, alias="year")
 
 
 class EnrichedCompanyFullLocationsItem(Model):
@@ -439,8 +439,8 @@ class SearchPeopleData(Model):
 
 
 class SearchPeopleDataMetadata(Model):
-    per_page: int | float | None = Field(None, alias="perPage")
-    count: int | float | None = Field(None, alias="count")
+    per_page: int | None = Field(None, alias="perPage")
+    count: int | None = Field(None, alias="count")
     next_cursor: str | None = Field(None, alias="nextCursor")
 
 
@@ -453,8 +453,8 @@ class SearchPeoplePromptData(Model):
 
 
 class SearchPeoplePromptDataMetadata(Model):
-    per_page: int | float | None = Field(None, alias="perPage")
-    count: int | float | None = Field(None, alias="count")
+    per_page: int | None = Field(None, alias="perPage")
+    count: int | None = Field(None, alias="count")
     next_cursor: str | None = Field(None, alias="nextCursor")
 
 
@@ -569,30 +569,30 @@ class SearchPeopleFilters(Model):
         None, alias="excludeLanguages"
     )
     keywords: str | None = Field(None, alias="keywords")
-    changed_jobs_within_days: int | float | None = Field(None, alias="changedJobsWithinDays")
+    changed_jobs_within_days: int | None = Field(None, alias="changedJobsWithinDays")
     location: SearchPeopleFiltersLocation | None = Field(None, alias="location")
     max_data_age_date: str | None = Field(None, alias="maxDataAgeDate")
 
 
 class SearchPeopleFiltersFollowersCount(Model):
-    min: int | float | None = Field(None, alias="min")
-    max: int | float | None = Field(None, alias="max")
+    min: int | None = Field(None, alias="min")
+    max: int | None = Field(None, alias="max")
 
 
 class SearchPeopleFiltersCurrentCompanyEmployeeCountRange(Model):
-    min: int | float | None = Field(None, alias="min")
-    max: int | float | None = Field(None, alias="max")
+    min: int | None = Field(None, alias="min")
+    max: int | None = Field(None, alias="max")
 
 
 class SearchPeopleFiltersTotalExperienceMonths(Model):
-    min: int | float | None = Field(None, alias="min")
-    max: int | float | None = Field(None, alias="max")
+    min: int | None = Field(None, alias="min")
+    max: int | None = Field(None, alias="max")
 
 
 class SearchPeopleFiltersExperienceItem(Model):
     dimension: str | None = Field(None, alias="dimension")
     value: str | None = Field(None, alias="value")
-    min_months: int | float | None = Field(None, alias="minMonths")
+    min_months: int | None = Field(None, alias="minMonths")
 
 
 class SearchPeopleFiltersLocation(Model):
@@ -608,8 +608,8 @@ class SearchOrganizationsData(Model):
 
 
 class SearchOrganizationsDataMetadata(Model):
-    per_page: int | float | None = Field(None, alias="perPage")
-    count: int | float | None = Field(None, alias="count")
+    per_page: int | None = Field(None, alias="perPage")
+    count: int | None = Field(None, alias="count")
     next_cursor: str | None = Field(None, alias="nextCursor")
 
 
@@ -622,8 +622,8 @@ class SearchOrganizationsPromptData(Model):
 
 
 class SearchOrganizationsPromptDataMetadata(Model):
-    per_page: int | float | None = Field(None, alias="perPage")
-    count: int | float | None = Field(None, alias="count")
+    per_page: int | None = Field(None, alias="perPage")
+    count: int | None = Field(None, alias="count")
     next_cursor: str | None = Field(None, alias="nextCursor")
 
 
@@ -649,18 +649,18 @@ class SearchOrganizationsFilters(Model):
 
 
 class SearchOrganizationsFiltersEmployeeCountRange(Model):
-    min: int | float | None = Field(None, alias="min")
-    max: int | float | None = Field(None, alias="max")
+    min: int | None = Field(None, alias="min")
+    max: int | None = Field(None, alias="max")
 
 
 class SearchOrganizationsFiltersFoundedYear(Model):
-    min: int | float | None = Field(None, alias="min")
-    max: int | float | None = Field(None, alias="max")
+    min: int | None = Field(None, alias="min")
+    max: int | None = Field(None, alias="max")
 
 
 class SearchOrganizationsFiltersFollowersCount(Model):
-    min: int | float | None = Field(None, alias="min")
-    max: int | float | None = Field(None, alias="max")
+    min: int | None = Field(None, alias="min")
+    max: int | None = Field(None, alias="max")
 
 
 class SearchOrganizationsFiltersLocation(Model):
@@ -671,25 +671,25 @@ class SearchOrganizationsFiltersLocation(Model):
 
 
 class SearchOrganizationsCountData(Model):
-    count: int | float | None = Field(None, alias="count")
+    count: int | None = Field(None, alias="count")
 
 
 class SearchPeopleCountData(Model):
-    count: int | float | None = Field(None, alias="count")
+    count: int | None = Field(None, alias="count")
 
 
 class CheckPersonData(Model):
     exists: bool | None = Field(None, alias="exists")
     last_update: str | None = Field(None, alias="lastUpdate")
-    experience_count: int | float | None = Field(None, alias="experienceCount")
-    skill_count: int | float | None = Field(None, alias="skillCount")
-    school_count: int | float | None = Field(None, alias="schoolCount")
+    experience_count: int | None = Field(None, alias="experienceCount")
+    skill_count: int | None = Field(None, alias="skillCount")
+    school_count: int | None = Field(None, alias="schoolCount")
 
 
 class CheckCompanyData(Model):
     exists: bool | None = Field(None, alias="exists")
     last_update: str | None = Field(None, alias="lastUpdate")
-    speciality_count: int | float | None = Field(None, alias="specialityCount")
+    speciality_count: int | None = Field(None, alias="specialityCount")
 
 
 class JobAckData(Model):
@@ -896,32 +896,32 @@ class SearchPeopleBody(Model):
         None, alias="excludeLanguages"
     )
     keywords: str | None = Field(None, alias="keywords")
-    changed_jobs_within_days: int | float | None = Field(None, alias="changedJobsWithinDays")
+    changed_jobs_within_days: int | None = Field(None, alias="changedJobsWithinDays")
     location: SearchPeopleBodyLocation | None = Field(None, alias="location")
     max_data_age_date: str | None = Field(None, alias="maxDataAgeDate")
     cursor: str | None = Field(None, alias="cursor")
-    per_page: int | float | None = Field(None, alias="perPage")
+    per_page: int | None = Field(None, alias="perPage")
 
 
 class SearchPeopleBodyFollowersCount(Model):
-    min: int | float | None = Field(None, alias="min")
-    max: int | float | None = Field(None, alias="max")
+    min: int | None = Field(None, alias="min")
+    max: int | None = Field(None, alias="max")
 
 
 class SearchPeopleBodyCurrentCompanyEmployeeCountRange(Model):
-    min: int | float | None = Field(None, alias="min")
-    max: int | float | None = Field(None, alias="max")
+    min: int | None = Field(None, alias="min")
+    max: int | None = Field(None, alias="max")
 
 
 class SearchPeopleBodyTotalExperienceMonths(Model):
-    min: int | float | None = Field(None, alias="min")
-    max: int | float | None = Field(None, alias="max")
+    min: int | None = Field(None, alias="min")
+    max: int | None = Field(None, alias="max")
 
 
 class SearchPeopleBodyExperienceItem(Model):
     dimension: str | None = Field(None, alias="dimension")
     value: str | None = Field(None, alias="value")
-    min_months: int | float | None = Field(None, alias="minMonths")
+    min_months: int | None = Field(None, alias="minMonths")
 
 
 class SearchPeopleBodyLocation(Model):
@@ -934,14 +934,14 @@ class SearchPeopleBodyLocation(Model):
 class SearchPeoplePromptBody(Model):
     prompt: str | None = Field(None, alias="prompt")
     cursor: str | None = Field(None, alias="cursor")
-    per_page: int | float | None = Field(None, alias="perPage")
+    per_page: int | None = Field(None, alias="perPage")
 
 
 class SearchPeopleLookalikeBody(Model):
     url: str | None = Field(None, alias="url")
     id: str | None = Field(None, alias="id")
     cursor: str | None = Field(None, alias="cursor")
-    per_page: int | float | None = Field(None, alias="perPage")
+    per_page: int | None = Field(None, alias="perPage")
 
 
 class SearchPeopleCountBody(Model):
@@ -1052,30 +1052,30 @@ class SearchPeopleCountBody(Model):
         None, alias="excludeLanguages"
     )
     keywords: str | None = Field(None, alias="keywords")
-    changed_jobs_within_days: int | float | None = Field(None, alias="changedJobsWithinDays")
+    changed_jobs_within_days: int | None = Field(None, alias="changedJobsWithinDays")
     location: SearchPeopleCountBodyLocation | None = Field(None, alias="location")
     max_data_age_date: str | None = Field(None, alias="maxDataAgeDate")
 
 
 class SearchPeopleCountBodyFollowersCount(Model):
-    min: int | float | None = Field(None, alias="min")
-    max: int | float | None = Field(None, alias="max")
+    min: int | None = Field(None, alias="min")
+    max: int | None = Field(None, alias="max")
 
 
 class SearchPeopleCountBodyCurrentCompanyEmployeeCountRange(Model):
-    min: int | float | None = Field(None, alias="min")
-    max: int | float | None = Field(None, alias="max")
+    min: int | None = Field(None, alias="min")
+    max: int | None = Field(None, alias="max")
 
 
 class SearchPeopleCountBodyTotalExperienceMonths(Model):
-    min: int | float | None = Field(None, alias="min")
-    max: int | float | None = Field(None, alias="max")
+    min: int | None = Field(None, alias="min")
+    max: int | None = Field(None, alias="max")
 
 
 class SearchPeopleCountBodyExperienceItem(Model):
     dimension: str | None = Field(None, alias="dimension")
     value: str | None = Field(None, alias="value")
-    min_months: int | float | None = Field(None, alias="minMonths")
+    min_months: int | None = Field(None, alias="minMonths")
 
 
 class SearchPeopleCountBodyLocation(Model):
@@ -1100,22 +1100,22 @@ class SearchOrganizationsBody(Model):
     location: SearchOrganizationsBodyLocation | None = Field(None, alias="location")
     max_data_age_date: str | None = Field(None, alias="maxDataAgeDate")
     cursor: str | None = Field(None, alias="cursor")
-    per_page: int | float | None = Field(None, alias="perPage")
+    per_page: int | None = Field(None, alias="perPage")
 
 
 class SearchOrganizationsBodyEmployeeCountRange(Model):
-    min: int | float | None = Field(None, alias="min")
-    max: int | float | None = Field(None, alias="max")
+    min: int | None = Field(None, alias="min")
+    max: int | None = Field(None, alias="max")
 
 
 class SearchOrganizationsBodyFoundedYear(Model):
-    min: int | float | None = Field(None, alias="min")
-    max: int | float | None = Field(None, alias="max")
+    min: int | None = Field(None, alias="min")
+    max: int | None = Field(None, alias="max")
 
 
 class SearchOrganizationsBodyFollowersCount(Model):
-    min: int | float | None = Field(None, alias="min")
-    max: int | float | None = Field(None, alias="max")
+    min: int | None = Field(None, alias="min")
+    max: int | None = Field(None, alias="max")
 
 
 class SearchOrganizationsBodyLocation(Model):
@@ -1142,18 +1142,18 @@ class SearchOrganizationsCountBody(Model):
 
 
 class SearchOrganizationsCountBodyEmployeeCountRange(Model):
-    min: int | float | None = Field(None, alias="min")
-    max: int | float | None = Field(None, alias="max")
+    min: int | None = Field(None, alias="min")
+    max: int | None = Field(None, alias="max")
 
 
 class SearchOrganizationsCountBodyFoundedYear(Model):
-    min: int | float | None = Field(None, alias="min")
-    max: int | float | None = Field(None, alias="max")
+    min: int | None = Field(None, alias="min")
+    max: int | None = Field(None, alias="max")
 
 
 class SearchOrganizationsCountBodyFollowersCount(Model):
-    min: int | float | None = Field(None, alias="min")
-    max: int | float | None = Field(None, alias="max")
+    min: int | None = Field(None, alias="min")
+    max: int | None = Field(None, alias="max")
 
 
 class SearchOrganizationsCountBodyLocation(Model):
@@ -1166,28 +1166,28 @@ class SearchOrganizationsCountBodyLocation(Model):
 class SearchOrganizationsPromptBody(Model):
     prompt: str | None = Field(None, alias="prompt")
     cursor: str | None = Field(None, alias="cursor")
-    per_page: int | float | None = Field(None, alias="perPage")
+    per_page: int | None = Field(None, alias="perPage")
 
 
 class SearchPeopleParamsFollowersCount(Model):
-    min: int | float | None = Field(None, alias="min")
-    max: int | float | None = Field(None, alias="max")
+    min: int | None = Field(None, alias="min")
+    max: int | None = Field(None, alias="max")
 
 
 class SearchPeopleParamsCurrentCompanyEmployeeCountRange(Model):
-    min: int | float | None = Field(None, alias="min")
-    max: int | float | None = Field(None, alias="max")
+    min: int | None = Field(None, alias="min")
+    max: int | None = Field(None, alias="max")
 
 
 class SearchPeopleParamsTotalExperienceMonths(Model):
-    min: int | float | None = Field(None, alias="min")
-    max: int | float | None = Field(None, alias="max")
+    min: int | None = Field(None, alias="min")
+    max: int | None = Field(None, alias="max")
 
 
 class SearchPeopleParamsExperienceItem(Model):
     dimension: str | None = Field(None, alias="dimension")
     value: str | None = Field(None, alias="value")
-    min_months: int | float | None = Field(None, alias="minMonths")
+    min_months: int | None = Field(None, alias="minMonths")
 
 
 class SearchPeopleParamsLocation(Model):
@@ -1198,24 +1198,24 @@ class SearchPeopleParamsLocation(Model):
 
 
 class CountPeopleParamsFollowersCount(Model):
-    min: int | float | None = Field(None, alias="min")
-    max: int | float | None = Field(None, alias="max")
+    min: int | None = Field(None, alias="min")
+    max: int | None = Field(None, alias="max")
 
 
 class CountPeopleParamsCurrentCompanyEmployeeCountRange(Model):
-    min: int | float | None = Field(None, alias="min")
-    max: int | float | None = Field(None, alias="max")
+    min: int | None = Field(None, alias="min")
+    max: int | None = Field(None, alias="max")
 
 
 class CountPeopleParamsTotalExperienceMonths(Model):
-    min: int | float | None = Field(None, alias="min")
-    max: int | float | None = Field(None, alias="max")
+    min: int | None = Field(None, alias="min")
+    max: int | None = Field(None, alias="max")
 
 
 class CountPeopleParamsExperienceItem(Model):
     dimension: str | None = Field(None, alias="dimension")
     value: str | None = Field(None, alias="value")
-    min_months: int | float | None = Field(None, alias="minMonths")
+    min_months: int | None = Field(None, alias="minMonths")
 
 
 class CountPeopleParamsLocation(Model):
@@ -1226,18 +1226,18 @@ class CountPeopleParamsLocation(Model):
 
 
 class SearchOrganizationsParamsEmployeeCountRange(Model):
-    min: int | float | None = Field(None, alias="min")
-    max: int | float | None = Field(None, alias="max")
+    min: int | None = Field(None, alias="min")
+    max: int | None = Field(None, alias="max")
 
 
 class SearchOrganizationsParamsFoundedYear(Model):
-    min: int | float | None = Field(None, alias="min")
-    max: int | float | None = Field(None, alias="max")
+    min: int | None = Field(None, alias="min")
+    max: int | None = Field(None, alias="max")
 
 
 class SearchOrganizationsParamsFollowersCount(Model):
-    min: int | float | None = Field(None, alias="min")
-    max: int | float | None = Field(None, alias="max")
+    min: int | None = Field(None, alias="min")
+    max: int | None = Field(None, alias="max")
 
 
 class SearchOrganizationsParamsLocation(Model):
@@ -1248,18 +1248,18 @@ class SearchOrganizationsParamsLocation(Model):
 
 
 class CountOrganizationsParamsEmployeeCountRange(Model):
-    min: int | float | None = Field(None, alias="min")
-    max: int | float | None = Field(None, alias="max")
+    min: int | None = Field(None, alias="min")
+    max: int | None = Field(None, alias="max")
 
 
 class CountOrganizationsParamsFoundedYear(Model):
-    min: int | float | None = Field(None, alias="min")
-    max: int | float | None = Field(None, alias="max")
+    min: int | None = Field(None, alias="min")
+    max: int | None = Field(None, alias="max")
 
 
 class CountOrganizationsParamsFollowersCount(Model):
-    min: int | float | None = Field(None, alias="min")
-    max: int | float | None = Field(None, alias="max")
+    min: int | None = Field(None, alias="min")
+    max: int | None = Field(None, alias="max")
 
 
 class CountOrganizationsParamsLocation(Model):

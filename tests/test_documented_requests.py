@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from reversecontact import catalogs
 from reversecontact._http import normalize
 from reversecontact._operations import ALIASES
 
@@ -69,6 +70,15 @@ def validate(value, schema):
         assert value is None
 
 
+class ListConstants(ast.NodeTransformer):
+    """Reads Industry.SOFTWARE_DEVELOPMENT as its value, so it is checked like a literal."""
+
+    def visit_Attribute(self, node):
+        if isinstance(node.value, ast.Name) and node.value.id in catalogs.__all__:
+            return ast.Constant(getattr(catalogs, node.value.id)[node.attr].value)
+        return self.generic_visit(node)
+
+
 def test_all_documented_request_literals_match_snapshot():
     readme = (ROOT / "README.md").read_text()
     snippets = re.findall(r"```python\n(.*?)```", readme, re.S)
@@ -111,7 +121,7 @@ def test_all_documented_request_literals_match_snapshot():
                     "idempotency_key",
                 }:
                     continue
-                values[keyword.arg] = ast.literal_eval(keyword.value)
+                values[keyword.arg] = ast.literal_eval(ListConstants().visit(keyword.value))
             values = normalize(values, ALIASES)
             if body is not None:
                 validate(values, body)

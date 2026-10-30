@@ -472,6 +472,9 @@ class SearchPeopleFilters(Model):
     is_premium: bool | None = Field(None, alias="isPremium")
     is_verified: bool | None = Field(None, alias="isVerified")
     followers_count: SearchPeopleFiltersFollowersCount | None = Field(None, alias="followersCount")
+    connections_count: SearchPeopleFiltersConnectionsCount | None = Field(
+        None, alias="connectionsCount"
+    )
     position_title: str | builtins.list[str | None] | None = Field(None, alias="positionTitle")
     exclude_position_title: str | builtins.list[str | None] | None = Field(
         None, alias="excludePositionTitle"
@@ -579,6 +582,11 @@ class SearchPeopleFiltersFollowersCount(Model):
     max: int | None = Field(None, alias="max")
 
 
+class SearchPeopleFiltersConnectionsCount(Model):
+    min: int | None = Field(None, alias="min")
+    max: int | None = Field(None, alias="max")
+
+
 class SearchPeopleFiltersCurrentCompanyEmployeeCountRange(Model):
     min: int | None = Field(None, alias="min")
     max: int | None = Field(None, alias="max")
@@ -598,6 +606,7 @@ class SearchPeopleFiltersExperienceItem(Model):
 class SearchPeopleFiltersLocation(Model):
     country: str | builtins.list[str | None] | None = Field(None, alias="country")
     country_code: str | builtins.list[str | None] | None = Field(None, alias="countryCode")
+    area: str | builtins.list[str | None] | None = Field(None, alias="area")
     region: str | builtins.list[str | None] | None = Field(None, alias="region")
     city: str | builtins.list[str | None] | None = Field(None, alias="city")
 
@@ -666,6 +675,7 @@ class SearchOrganizationsFiltersFollowersCount(Model):
 class SearchOrganizationsFiltersLocation(Model):
     country: str | builtins.list[str | None] | None = Field(None, alias="country")
     country_code: str | builtins.list[str | None] | None = Field(None, alias="countryCode")
+    area: str | builtins.list[str | None] | None = Field(None, alias="area")
     region: str | builtins.list[str | None] | None = Field(None, alias="region")
     city: str | builtins.list[str | None] | None = Field(None, alias="city")
 
@@ -801,6 +811,9 @@ class SearchPeopleBody(Model):
     is_premium: bool | None = Field(None, alias="isPremium")
     is_verified: bool | None = Field(None, alias="isVerified")
     followers_count: SearchPeopleBodyFollowersCount | None = Field(None, alias="followersCount")
+    connections_count: SearchPeopleBodyConnectionsCount | None = Field(
+        None, alias="connectionsCount"
+    )
     position_title: str | builtins.list[str | None] | None = Field(None, alias="positionTitle")
     exclude_position_title: str | builtins.list[str | None] | None = Field(
         None, alias="excludePositionTitle"
@@ -910,6 +923,11 @@ class SearchPeopleBodyFollowersCount(Model):
     max: int | None = Field(None, alias="max")
 
 
+class SearchPeopleBodyConnectionsCount(Model):
+    min: int | None = Field(None, alias="min")
+    max: int | None = Field(None, alias="max")
+
+
 class SearchPeopleBodyCurrentCompanyEmployeeCountRange(Model):
     min: int | None = Field(None, alias="min")
     max: int | None = Field(None, alias="max")
@@ -929,6 +947,7 @@ class SearchPeopleBodyExperienceItem(Model):
 class SearchPeopleBodyLocation(Model):
     country: str | builtins.list[str | None] | None = Field(None, alias="country")
     country_code: str | builtins.list[str | None] | None = Field(None, alias="countryCode")
+    area: str | builtins.list[str | None] | None = Field(None, alias="area")
     region: str | builtins.list[str | None] | None = Field(None, alias="region")
     city: str | builtins.list[str | None] | None = Field(None, alias="city")
 
@@ -956,6 +975,9 @@ class SearchPeopleCountBody(Model):
     is_verified: bool | None = Field(None, alias="isVerified")
     followers_count: SearchPeopleCountBodyFollowersCount | None = Field(
         None, alias="followersCount"
+    )
+    connections_count: SearchPeopleCountBodyConnectionsCount | None = Field(
+        None, alias="connectionsCount"
     )
     position_title: str | builtins.list[str | None] | None = Field(None, alias="positionTitle")
     exclude_position_title: str | builtins.list[str | None] | None = Field(
@@ -1064,6 +1086,11 @@ class SearchPeopleCountBodyFollowersCount(Model):
     max: int | None = Field(None, alias="max")
 
 
+class SearchPeopleCountBodyConnectionsCount(Model):
+    min: int | None = Field(None, alias="min")
+    max: int | None = Field(None, alias="max")
+
+
 class SearchPeopleCountBodyCurrentCompanyEmployeeCountRange(Model):
     min: int | None = Field(None, alias="min")
     max: int | None = Field(None, alias="max")
@@ -1083,6 +1110,7 @@ class SearchPeopleCountBodyExperienceItem(Model):
 class SearchPeopleCountBodyLocation(Model):
     country: str | builtins.list[str | None] | None = Field(None, alias="country")
     country_code: str | builtins.list[str | None] | None = Field(None, alias="countryCode")
+    area: str | builtins.list[str | None] | None = Field(None, alias="area")
     region: str | builtins.list[str | None] | None = Field(None, alias="region")
     city: str | builtins.list[str | None] | None = Field(None, alias="city")
 
@@ -1123,6 +1151,7 @@ class SearchOrganizationsBodyFollowersCount(Model):
 class SearchOrganizationsBodyLocation(Model):
     country: str | builtins.list[str | None] | None = Field(None, alias="country")
     country_code: str | builtins.list[str | None] | None = Field(None, alias="countryCode")
+    area: str | builtins.list[str | None] | None = Field(None, alias="area")
     region: str | builtins.list[str | None] | None = Field(None, alias="region")
     city: str | builtins.list[str | None] | None = Field(None, alias="city")
 
@@ -1161,6 +1190,7 @@ class SearchOrganizationsCountBodyFollowersCount(Model):
 class SearchOrganizationsCountBodyLocation(Model):
     country: str | builtins.list[str | None] | None = Field(None, alias="country")
     country_code: str | builtins.list[str | None] | None = Field(None, alias="countryCode")
+    area: str | builtins.list[str | None] | None = Field(None, alias="area")
     region: str | builtins.list[str | None] | None = Field(None, alias="region")
     city: str | builtins.list[str | None] | None = Field(None, alias="city")
 
@@ -1172,6 +1202,11 @@ class SearchOrganizationsPromptBody(Model):
 
 
 class SearchPeopleParamsFollowersCount(Model):
+    min: int | None = Field(None, alias="min")
+    max: int | None = Field(None, alias="max")
+
+
+class SearchPeopleParamsConnectionsCount(Model):
     min: int | None = Field(None, alias="min")
     max: int | None = Field(None, alias="max")
 
@@ -1195,11 +1230,17 @@ class SearchPeopleParamsExperienceItem(Model):
 class SearchPeopleParamsLocation(Model):
     country: str | builtins.list[str | None] | None = Field(None, alias="country")
     country_code: str | builtins.list[str | None] | None = Field(None, alias="countryCode")
+    area: str | builtins.list[str | None] | None = Field(None, alias="area")
     region: str | builtins.list[str | None] | None = Field(None, alias="region")
     city: str | builtins.list[str | None] | None = Field(None, alias="city")
 
 
 class CountPeopleParamsFollowersCount(Model):
+    min: int | None = Field(None, alias="min")
+    max: int | None = Field(None, alias="max")
+
+
+class CountPeopleParamsConnectionsCount(Model):
     min: int | None = Field(None, alias="min")
     max: int | None = Field(None, alias="max")
 
@@ -1223,6 +1264,7 @@ class CountPeopleParamsExperienceItem(Model):
 class CountPeopleParamsLocation(Model):
     country: str | builtins.list[str | None] | None = Field(None, alias="country")
     country_code: str | builtins.list[str | None] | None = Field(None, alias="countryCode")
+    area: str | builtins.list[str | None] | None = Field(None, alias="area")
     region: str | builtins.list[str | None] | None = Field(None, alias="region")
     city: str | builtins.list[str | None] | None = Field(None, alias="city")
 
@@ -1245,6 +1287,7 @@ class SearchOrganizationsParamsFollowersCount(Model):
 class SearchOrganizationsParamsLocation(Model):
     country: str | builtins.list[str | None] | None = Field(None, alias="country")
     country_code: str | builtins.list[str | None] | None = Field(None, alias="countryCode")
+    area: str | builtins.list[str | None] | None = Field(None, alias="area")
     region: str | builtins.list[str | None] | None = Field(None, alias="region")
     city: str | builtins.list[str | None] | None = Field(None, alias="city")
 
@@ -1267,6 +1310,7 @@ class CountOrganizationsParamsFollowersCount(Model):
 class CountOrganizationsParamsLocation(Model):
     country: str | builtins.list[str | None] | None = Field(None, alias="country")
     country_code: str | builtins.list[str | None] | None = Field(None, alias="countryCode")
+    area: str | builtins.list[str | None] | None = Field(None, alias="area")
     region: str | builtins.list[str | None] | None = Field(None, alias="region")
     city: str | builtins.list[str | None] | None = Field(None, alias="city")
 
@@ -1318,6 +1362,7 @@ SearchPeoplePromptDataMetadata.model_rebuild()
 SearchPeoplePromptDataInterpretation.model_rebuild()
 SearchPeopleFilters.model_rebuild()
 SearchPeopleFiltersFollowersCount.model_rebuild()
+SearchPeopleFiltersConnectionsCount.model_rebuild()
 SearchPeopleFiltersCurrentCompanyEmployeeCountRange.model_rebuild()
 SearchPeopleFiltersTotalExperienceMonths.model_rebuild()
 SearchPeopleFiltersExperienceItem.model_rebuild()
@@ -1352,6 +1397,7 @@ ContactEmailBody.model_rebuild()
 ContactPhoneBody.model_rebuild()
 SearchPeopleBody.model_rebuild()
 SearchPeopleBodyFollowersCount.model_rebuild()
+SearchPeopleBodyConnectionsCount.model_rebuild()
 SearchPeopleBodyCurrentCompanyEmployeeCountRange.model_rebuild()
 SearchPeopleBodyTotalExperienceMonths.model_rebuild()
 SearchPeopleBodyExperienceItem.model_rebuild()
@@ -1360,6 +1406,7 @@ SearchPeoplePromptBody.model_rebuild()
 SearchPeopleLookalikeBody.model_rebuild()
 SearchPeopleCountBody.model_rebuild()
 SearchPeopleCountBodyFollowersCount.model_rebuild()
+SearchPeopleCountBodyConnectionsCount.model_rebuild()
 SearchPeopleCountBodyCurrentCompanyEmployeeCountRange.model_rebuild()
 SearchPeopleCountBodyTotalExperienceMonths.model_rebuild()
 SearchPeopleCountBodyExperienceItem.model_rebuild()
@@ -1376,11 +1423,13 @@ SearchOrganizationsCountBodyFollowersCount.model_rebuild()
 SearchOrganizationsCountBodyLocation.model_rebuild()
 SearchOrganizationsPromptBody.model_rebuild()
 SearchPeopleParamsFollowersCount.model_rebuild()
+SearchPeopleParamsConnectionsCount.model_rebuild()
 SearchPeopleParamsCurrentCompanyEmployeeCountRange.model_rebuild()
 SearchPeopleParamsTotalExperienceMonths.model_rebuild()
 SearchPeopleParamsExperienceItem.model_rebuild()
 SearchPeopleParamsLocation.model_rebuild()
 CountPeopleParamsFollowersCount.model_rebuild()
+CountPeopleParamsConnectionsCount.model_rebuild()
 CountPeopleParamsCurrentCompanyEmployeeCountRange.model_rebuild()
 CountPeopleParamsTotalExperienceMonths.model_rebuild()
 CountPeopleParamsExperienceItem.model_rebuild()

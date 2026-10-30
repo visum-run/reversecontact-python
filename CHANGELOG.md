@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.6 (2026-10-30)
+
+- `search.people`, `search.organizations`, `search.count_people` and `search.count_organizations` accept `location.area`, one zone id or a list (`"MR:EMEA"`, `["MC:DACH", "IG:EU"]`): main regions, UN regions and subregions, market clusters and institutional groups.
+- `search.people`, `search.count_people` and `search.iter_people` accept `connections_count`, a connection count range where one bound is enough (`{"min": 501}`).
+- The closed lists of the API are string enums, importable from `reversecontact`: `Industry`, `CountryCode`, `JobFunction`, `JobSubFunction`, `Seniority`, `ContractType`, `Area` and `EmailType` (`Industry.SOFTWARE_DEVELOPMENT`, `Area.MC_DACH`). The parameters still accept any plain string.
+
 ## 0.1.5 (2026-10-29)
 
 - `contact.find_email` and `contact.find_phone` accept `id`, a person id (`prs_…`) from a search, fetch or enrich result, in place of `url` or a name with company domain.

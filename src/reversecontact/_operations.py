@@ -136,6 +136,7 @@ ALIASES: dict[str, str] = {
     "exclude_languages": "excludeLanguages",
     "keywords": "keywords",
     "changed_jobs_within_days": "changedJobsWithinDays",
+    "area": "area",
     "region": "region",
     "max_data_age_date": "maxDataAgeDate",
     "warnings": "warnings",

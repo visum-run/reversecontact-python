@@ -197,6 +197,9 @@ class Search(SyncResource):
         followers_count: (
             models.SearchPeopleParamsFollowersCount | dict[str, object] | NotGiven | None
         ) = NOT_GIVEN,
+        connections_count: (
+            models.SearchPeopleParamsConnectionsCount | dict[str, object] | NotGiven | None
+        ) = NOT_GIVEN,
         position_title: (str | builtins.list[str] | NotGiven | None) = NOT_GIVEN,
         exclude_position_title: (str | builtins.list[str] | NotGiven | None) = NOT_GIVEN,
         company_name: (str | builtins.list[str] | NotGiven | None) = NOT_GIVEN,
@@ -277,6 +280,7 @@ class Search(SyncResource):
                     "isPremium": is_premium,
                     "isVerified": is_verified,
                     "followersCount": followers_count,
+                    "connectionsCount": connections_count,
                     "positionTitle": position_title,
                     "excludePositionTitle": exclude_position_title,
                     "companyName": company_name,
@@ -342,6 +346,9 @@ class Search(SyncResource):
         is_verified: (bool | NotGiven | None) = NOT_GIVEN,
         followers_count: (
             models.SearchPeopleParamsFollowersCount | dict[str, object] | NotGiven | None
+        ) = NOT_GIVEN,
+        connections_count: (
+            models.SearchPeopleParamsConnectionsCount | dict[str, object] | NotGiven | None
         ) = NOT_GIVEN,
         position_title: (str | builtins.list[str] | NotGiven | None) = NOT_GIVEN,
         exclude_position_title: (str | builtins.list[str] | NotGiven | None) = NOT_GIVEN,
@@ -423,6 +430,7 @@ class Search(SyncResource):
                     "isPremium": is_premium,
                     "isVerified": is_verified,
                     "followersCount": followers_count,
+                    "connectionsCount": connections_count,
                     "positionTitle": position_title,
                     "excludePositionTitle": exclude_position_title,
                     "companyName": company_name,
@@ -574,6 +582,9 @@ class Search(SyncResource):
         followers_count: (
             models.CountPeopleParamsFollowersCount | dict[str, object] | NotGiven | None
         ) = NOT_GIVEN,
+        connections_count: (
+            models.CountPeopleParamsConnectionsCount | dict[str, object] | NotGiven | None
+        ) = NOT_GIVEN,
         position_title: (str | builtins.list[str] | NotGiven | None) = NOT_GIVEN,
         exclude_position_title: (str | builtins.list[str] | NotGiven | None) = NOT_GIVEN,
         company_name: (str | builtins.list[str] | NotGiven | None) = NOT_GIVEN,
@@ -652,6 +663,7 @@ class Search(SyncResource):
                     "isPremium": is_premium,
                     "isVerified": is_verified,
                     "followersCount": followers_count,
+                    "connectionsCount": connections_count,
                     "positionTitle": position_title,
                     "excludePositionTitle": exclude_position_title,
                     "companyName": company_name,

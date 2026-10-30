@@ -89,6 +89,24 @@ with ReverseContact(api_key=os.environ["RC_API_KEY"]) as client:
             print(person.id, person.first_name)
 ```
 
+### Published lists
+
+The closed lists of the API are string enums: `Industry`, `CountryCode`, `JobFunction`, `JobSubFunction`, `Seniority`, `ContractType`, `Area` and `EmailType`. A member is its value (`Industry.SOFTWARE_DEVELOPMENT == "Software Development"`).
+
+```python
+from reversecontact import Area, Industry, Seniority
+
+with ReverseContact(api_key=os.environ["RC_API_KEY"]) as client:
+    leaders = client.search.count_people(
+        current_company_industry=Industry.SOFTWARE_DEVELOPMENT,
+        current_seniority=[Seniority.CXO, Seniority.OWNER_FOUNDER],
+        location={"area": Area.MC_DACH},
+    )
+    print(leaders.data.count if leaders.data else None)
+```
+
+The parameters also accept any plain string, so a value added to a list after your SDK version still works. The API rejects a value it does not know with a 422 error.
+
 ### Live fetch
 
 A live fetch returns a job handle immediately. Save its id before waiting, and reuse the id after a process restart.

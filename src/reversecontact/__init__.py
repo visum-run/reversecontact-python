@@ -3,6 +3,16 @@ from ._jobs import AsyncJob, Job, WebhookDelivery, parse_webhook_delivery
 from ._models import AppInfo, ContactValue, JobSnapshot, Metadata, Model, Quotas, Result
 from ._pagination import AsyncPage, Page
 from ._version import __version__
+from .catalogs import (
+    Area,
+    ContractType,
+    CountryCode,
+    EmailType,
+    Industry,
+    JobFunction,
+    JobSubFunction,
+    Seniority,
+)
 from .errors import (
     APIConnectionError,
     APIError,
@@ -31,6 +41,7 @@ __all__ = [
     "APIError",
     "APITimeoutError",
     "AppInfo",
+    "Area",
     "AsyncJob",
     "AsyncPage",
     "AsyncReverseContact",
@@ -39,13 +50,19 @@ __all__ = [
     "Company",
     "ConflictError",
     "ContactValue",
+    "ContractType",
+    "CountryCode",
     "DailyLimitError",
+    "EmailType",
     "GoneError",
+    "Industry",
     "InsufficientCreditsError",
     "InternalServerError",
     "Job",
     "JobFailedError",
+    "JobFunction",
     "JobSnapshot",
+    "JobSubFunction",
     "JobTimeoutError",
     "KeyCreditLimitError",
     "Metadata",
@@ -59,6 +76,7 @@ __all__ = [
     "Result",
     "ReverseContact",
     "ReverseContactError",
+    "Seniority",
     "UnavailableForLegalReasonsError",
     "UnprocessableEntityError",
     "WebhookDelivery",

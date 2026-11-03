@@ -242,6 +242,8 @@ class Search(SyncResource):
         contract_type: (str | builtins.list[str] | NotGiven | None) = NOT_GIVEN,
         exclude_contract_type: (str | builtins.list[str] | NotGiven | None) = NOT_GIVEN,
         school_name: (str | builtins.list[str] | NotGiven | None) = NOT_GIVEN,
+        school_id: (str | builtins.list[str] | NotGiven | None) = NOT_GIVEN,
+        school_linkedin_id: (str | builtins.list[str] | NotGiven | None) = NOT_GIVEN,
         total_experience_months: (
             models.SearchPeopleParamsTotalExperienceMonths | dict[str, object] | NotGiven | None
         ) = NOT_GIVEN,
@@ -316,6 +318,8 @@ class Search(SyncResource):
                     "contractType": contract_type,
                     "excludeContractType": exclude_contract_type,
                     "schoolName": school_name,
+                    "schoolId": school_id,
+                    "schoolLinkedinId": school_linkedin_id,
                     "totalExperienceMonths": total_experience_months,
                     "experience": experience,
                     "skills": skills,
@@ -392,6 +396,8 @@ class Search(SyncResource):
         contract_type: (str | builtins.list[str] | NotGiven | None) = NOT_GIVEN,
         exclude_contract_type: (str | builtins.list[str] | NotGiven | None) = NOT_GIVEN,
         school_name: (str | builtins.list[str] | NotGiven | None) = NOT_GIVEN,
+        school_id: (str | builtins.list[str] | NotGiven | None) = NOT_GIVEN,
+        school_linkedin_id: (str | builtins.list[str] | NotGiven | None) = NOT_GIVEN,
         total_experience_months: (
             models.SearchPeopleParamsTotalExperienceMonths | dict[str, object] | NotGiven | None
         ) = NOT_GIVEN,
@@ -466,6 +472,8 @@ class Search(SyncResource):
                     "contractType": contract_type,
                     "excludeContractType": exclude_contract_type,
                     "schoolName": school_name,
+                    "schoolId": school_id,
+                    "schoolLinkedinId": school_linkedin_id,
                     "totalExperienceMonths": total_experience_months,
                     "experience": experience,
                     "skills": skills,
@@ -627,6 +635,8 @@ class Search(SyncResource):
         contract_type: (str | builtins.list[str] | NotGiven | None) = NOT_GIVEN,
         exclude_contract_type: (str | builtins.list[str] | NotGiven | None) = NOT_GIVEN,
         school_name: (str | builtins.list[str] | NotGiven | None) = NOT_GIVEN,
+        school_id: (str | builtins.list[str] | NotGiven | None) = NOT_GIVEN,
+        school_linkedin_id: (str | builtins.list[str] | NotGiven | None) = NOT_GIVEN,
         total_experience_months: (
             models.CountPeopleParamsTotalExperienceMonths | dict[str, object] | NotGiven | None
         ) = NOT_GIVEN,
@@ -699,6 +709,8 @@ class Search(SyncResource):
                     "contractType": contract_type,
                     "excludeContractType": exclude_contract_type,
                     "schoolName": school_name,
+                    "schoolId": school_id,
+                    "schoolLinkedinId": school_linkedin_id,
                     "totalExperienceMonths": total_experience_months,
                     "experience": experience,
                     "skills": skills,
@@ -713,6 +725,26 @@ class Search(SyncResource):
             ),
             RequestOptions(timeout, max_retries, headers),
             models.SearchPeopleCountData.model_validate,
+        )
+
+    def people_auto_suggestion(
+        self,
+        *,
+        field: (str | NotGiven | None) = NOT_GIVEN,
+        query: (str | NotGiven | None) = NOT_GIVEN,
+        limit: (int | NotGiven | None) = NOT_GIVEN,
+        timeout: Timeout | None = None,
+        max_retries: int | None = None,
+        headers: Mapping[str, str] | None = None,
+        **extra: object,
+    ) -> Result[models.SearchPeopleAutoSuggestionData]:
+        """Call searchPeopleAutoSuggestion. Extra arguments pass through."""
+        return self._result(
+            OPERATIONS["searchPeopleAutoSuggestion"],
+            {},
+            parameters({"field": field, "query": query, "limit": limit}, extra),
+            RequestOptions(timeout, max_retries, headers),
+            models.SearchPeopleAutoSuggestionData.model_validate,
         )
 
     def organizations(

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.8 (2026-11-03)
+
+- `search.people_auto_suggestion` returns the skills that start with what someone has typed, most common first, to build a search box in your own product. Free.
+- `search.people`, `search.count_people` and their iterator accept `school_id` and `school_linkedin_id`.
+
 ## 0.1.7 (2026-11-03)
 
 - `contact.verify_email` checks whether an email address can receive mail. It returns a job whose result holds `email` and `status`: `valid`, `risky`, `invalid` or `unknown`. The verdicts are a string enum, `EmailVerificationStatus`, and each submit carries an `Idempotency-Key` like the finders.

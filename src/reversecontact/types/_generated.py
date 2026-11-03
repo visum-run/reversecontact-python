@@ -560,6 +560,10 @@ class SearchPeopleFilters(Model):
         None, alias="excludeContractType"
     )
     school_name: str | builtins.list[str | None] | None = Field(None, alias="schoolName")
+    school_id: str | builtins.list[str | None] | None = Field(None, alias="schoolId")
+    school_linkedin_id: str | builtins.list[str | None] | None = Field(
+        None, alias="schoolLinkedinId"
+    )
     total_experience_months: SearchPeopleFiltersTotalExperienceMonths | None = Field(
         None, alias="totalExperienceMonths"
     )
@@ -686,6 +690,19 @@ class SearchOrganizationsCountData(Model):
 
 class SearchPeopleCountData(Model):
     count: int | None = Field(None, alias="count")
+
+
+class SearchPeopleAutoSuggestionData(Model):
+    object: str | None = Field(None, alias="object")
+    entity: str | None = Field(None, alias="entity")
+    field: str | None = Field(None, alias="field")
+    suggestions: builtins.list[SearchPeopleAutoSuggestionDataSuggestionsItem | None] | None = Field(
+        None, alias="suggestions"
+    )
+
+
+class SearchPeopleAutoSuggestionDataSuggestionsItem(Model):
+    value: str | None = Field(None, alias="value")
 
 
 class CheckPersonData(Model):
@@ -915,6 +932,10 @@ class SearchPeopleBody(Model):
         None, alias="excludeContractType"
     )
     school_name: str | builtins.list[str | None] | None = Field(None, alias="schoolName")
+    school_id: str | builtins.list[str | None] | None = Field(None, alias="schoolId")
+    school_linkedin_id: str | builtins.list[str | None] | None = Field(
+        None, alias="schoolLinkedinId"
+    )
     total_experience_months: SearchPeopleBodyTotalExperienceMonths | None = Field(
         None, alias="totalExperienceMonths"
     )
@@ -1080,6 +1101,10 @@ class SearchPeopleCountBody(Model):
         None, alias="excludeContractType"
     )
     school_name: str | builtins.list[str | None] | None = Field(None, alias="schoolName")
+    school_id: str | builtins.list[str | None] | None = Field(None, alias="schoolId")
+    school_linkedin_id: str | builtins.list[str | None] | None = Field(
+        None, alias="schoolLinkedinId"
+    )
     total_experience_months: SearchPeopleCountBodyTotalExperienceMonths | None = Field(
         None, alias="totalExperienceMonths"
     )
@@ -1129,6 +1154,12 @@ class SearchPeopleCountBodyLocation(Model):
     area: str | builtins.list[str | None] | None = Field(None, alias="area")
     region: str | builtins.list[str | None] | None = Field(None, alias="region")
     city: str | builtins.list[str | None] | None = Field(None, alias="city")
+
+
+class SearchPeopleAutoSuggestionBody(Model):
+    field: str | None = Field(None, alias="field")
+    query: str | None = Field(None, alias="query")
+    limit: int | None = Field(None, alias="limit")
 
 
 class SearchOrganizationsBody(Model):
@@ -1395,6 +1426,8 @@ SearchOrganizationsFiltersFollowersCount.model_rebuild()
 SearchOrganizationsFiltersLocation.model_rebuild()
 SearchOrganizationsCountData.model_rebuild()
 SearchPeopleCountData.model_rebuild()
+SearchPeopleAutoSuggestionData.model_rebuild()
+SearchPeopleAutoSuggestionDataSuggestionsItem.model_rebuild()
 CheckPersonData.model_rebuild()
 CheckCompanyData.model_rebuild()
 JobAckData.model_rebuild()
@@ -1430,6 +1463,7 @@ SearchPeopleCountBodyCurrentCompanyEmployeeCountRange.model_rebuild()
 SearchPeopleCountBodyTotalExperienceMonths.model_rebuild()
 SearchPeopleCountBodyExperienceItem.model_rebuild()
 SearchPeopleCountBodyLocation.model_rebuild()
+SearchPeopleAutoSuggestionBody.model_rebuild()
 SearchOrganizationsBody.model_rebuild()
 SearchOrganizationsBodyEmployeeCountRange.model_rebuild()
 SearchOrganizationsBodyFoundedYear.model_rebuild()

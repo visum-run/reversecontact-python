@@ -980,6 +980,26 @@ class AsyncContact(AsyncResource):
             parse_contacts,
         )
 
+    async def verify_email(
+        self,
+        *,
+        email: (str | NotGiven | None) = NOT_GIVEN,
+        webhook_url: (str | NotGiven | None) = NOT_GIVEN,
+        timeout: Timeout | None = None,
+        max_retries: int | None = None,
+        headers: Mapping[str, str] | None = None,
+        idempotency_key: str | None = None,
+        **extra: object,
+    ) -> AsyncJob[models.ContactEmailVerifyResult]:
+        """Call verifyContactEmail. Extra arguments pass through."""
+        return await self._job(
+            OPERATIONS["verifyContactEmail"],
+            {},
+            parameters({"email": email, "webhookUrl": webhook_url}, extra),
+            RequestOptions(timeout, max_retries, headers, idempotency_key),
+            models.ContactEmailVerifyResult.model_validate,
+        )
+
     async def find_phone(
         self,
         *,

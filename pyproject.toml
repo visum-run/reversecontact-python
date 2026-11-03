@@ -1,6 +1,6 @@
 [project]
 name = "reversecontact"
-version = "0.1.6"
+version = "0.1.7"
 description = "Official Python SDK for the Reverse Contact API"
 readme = "README.md"
 license = "Apache-2.0"

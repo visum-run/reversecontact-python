@@ -64,7 +64,7 @@ Keep API keys on your server. Both `rc_*` API keys and `oat_*` tokens work; the 
 | Search iterators | `search.iter_people`, `search.iter_people_by_prompt`, `search.iter_people_lookalike`, `search.iter_organizations`, `search.iter_organizations_by_prompt` | `client.search.iter_people(first_name="Jane", max_results=10)` |
 | Counts (free) | `search.count_people`, `search.count_organizations` | `client.search.count_organizations(company_name="Acme")` |
 | Filter catalogs (free) | `search.people_fields`, `search.organizations_fields` | `client.search.people_fields()` |
-| Contact discovery (job) | `contact.find_email`, `contact.find_phone` | `client.contact.find_phone(url="https://social.com/in/janedoe")` |
+| Contact discovery (job) | `contact.find_email`, `contact.find_phone`, `contact.verify_email` | `client.contact.verify_email(email="jane@example.com")` |
 | Jobs | `jobs.retrieve`, `jobs.wait` | `client.jobs.retrieve("saved-job-id", wait=20)` |
 | Usage (free) | `usage.retrieve` | `client.usage.retrieve().quotas` |
 
@@ -129,6 +129,15 @@ Each finder takes one person: `url`, `id` (a `prs_…` person id from a search, 
 
 ```python
 job = client.contact.find_email(id="prs_01jbd5vewyenebxgaz869ffe5t")
+```
+
+### Verify an email address
+
+`contact.verify_email` returns a job handle like the finders. Its result holds `email` and `status`, one of `valid`, `risky`, `invalid` or `unknown` (the `EmailVerificationStatus` enum).
+
+```python
+job = client.contact.verify_email(email="jane@example.com")
+print(job.wait().data.result.status)
 ```
 
 #### Safe retries
@@ -199,7 +208,7 @@ with ReverseContact(
     )
 ```
 
-Every operation accepts keyword-only `timeout`, `max_retries`, and `headers` overrides. `contact.find_email` and `contact.find_phone` also accept `idempotency_key`. A timeout can be a float or `httpx.Timeout`; the default is 90 seconds, including on an injected HTTP client. A single long poll uses at least `wait + 15` seconds for each finite HTTP timeout component. In a `wait()` helper, the remaining overall deadline caps every HTTP timeout component. Async waits also cap the complete in-flight poll; sync waits can exceed the deadline by one bounded HTTP phase.
+Every operation accepts keyword-only `timeout`, `max_retries`, and `headers` overrides. `contact.find_email`, `contact.find_phone` and `contact.verify_email` also accept `idempotency_key`. A timeout can be a float or `httpx.Timeout`; the default is 90 seconds, including on an injected HTTP client. A single long poll uses at least `wait + 15` seconds for each finite HTTP timeout component. In a `wait()` helper, the remaining overall deadline caps every HTTP timeout component. Async waits also cap the complete in-flight poll; sync waits can exceed the deadline by one bounded HTTP phase.
 
 Inject `http_client=httpx.Client(...)` or `httpx.AsyncClient(...)` for custom transports, connection pools, or proxies. Context managers and `close()` close only SDK-owned clients. You remain responsible for closing an injected client. `sleep` and `clock` are injectable for deterministic tests; the async client expects an asynchronous sleep function.
 

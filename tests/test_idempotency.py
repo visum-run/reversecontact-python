@@ -217,3 +217,42 @@ async def test_zero_retries_is_respected(h, submit, kind):
         await h.call(submit, max_retries=0)
     assert len(h.requests) == 1
     assert not h.clock.sleeps
+
+
+async def test_verify_email_posts_the_address_and_returns_the_verdict(h):
+    h.responses.extend(
+        [
+            acknowledgement(),
+            ok(
+                {
+                    "webhookId": "job_test",
+                    "status": "succeeded",
+                    "result": {"email": "jane@example.com", "status": "risky"},
+                }
+            ),
+        ]
+    )
+    job = await h.call(h.client.contact.verify_email, email="jane@example.com")
+    result = await h.call(job.wait)
+    request = h.requests[0]
+    assert request.method == "POST"
+    assert request.url.path == "/v2/contact/email/verify"
+    assert json.loads(request.content) == {"email": "jane@example.com"}
+    assert result.data.result.email == "jane@example.com"
+    assert result.data.result.status == rc.EmailVerificationStatus.RISKY
+
+
+async def test_verify_email_reuses_one_generated_key_across_retries(h):
+    h.responses.extend([failure(503), acknowledgement()])
+    await h.call(h.client.contact.verify_email, email="jane@example.com")
+    keys = [request.headers["Idempotency-Key"] for request in h.requests]
+    assert keys[0] == keys[1]
+    assert UUID(keys[0]).version == 4
+
+
+async def test_verify_email_respects_a_caller_key(h):
+    h.responses.append(acknowledgement())
+    await h.call(
+        h.client.contact.verify_email, email="jane@example.com", idempotency_key="caller-key"
+    )
+    assert h.requests[0].headers["Idempotency-Key"] == "caller-key"

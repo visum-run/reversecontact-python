@@ -714,6 +714,17 @@ class ContactEmailAckData(Model):
     poll_url: str | None = Field(None, alias="pollUrl")
 
 
+class ContactEmailVerifyAckData(Model):
+    status: str | None = Field(None, alias="status")
+    webhook_id: str | None = Field(None, alias="webhookId")
+    poll_url: str | None = Field(None, alias="pollUrl")
+
+
+class ContactEmailVerifyResult(Model):
+    email: str | None = Field(None, alias="email")
+    status: str | None = Field(None, alias="status")
+
+
 class ContactPhoneAckData(Model):
     status: str | None = Field(None, alias="status")
     webhook_id: str | None = Field(None, alias="webhookId")
@@ -789,6 +800,11 @@ class ContactEmailBody(Model):
     last_name: str | None = Field(None, alias="lastName")
     company_domain: str | None = Field(None, alias="companyDomain")
     email_type: str | None = Field(None, alias="emailType")
+    webhook_url: str | None = Field(None, alias="webhookUrl")
+
+
+class ContactEmailVerifyBody(Model):
+    email: str | None = Field(None, alias="email")
     webhook_url: str | None = Field(None, alias="webhookUrl")
 
 
@@ -1383,6 +1399,8 @@ CheckPersonData.model_rebuild()
 CheckCompanyData.model_rebuild()
 JobAckData.model_rebuild()
 ContactEmailAckData.model_rebuild()
+ContactEmailVerifyAckData.model_rebuild()
+ContactEmailVerifyResult.model_rebuild()
 ContactPhoneAckData.model_rebuild()
 PollWebhookData.model_rebuild()
 SearchFieldsData.model_rebuild()
@@ -1394,6 +1412,7 @@ LiveCompanyBody.model_rebuild()
 EnrichPersonBody.model_rebuild()
 EnrichCompanyBody.model_rebuild()
 ContactEmailBody.model_rebuild()
+ContactEmailVerifyBody.model_rebuild()
 ContactPhoneBody.model_rebuild()
 SearchPeopleBody.model_rebuild()
 SearchPeopleBodyFollowersCount.model_rebuild()

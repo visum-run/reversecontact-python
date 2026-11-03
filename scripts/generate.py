@@ -184,11 +184,12 @@ registry = (
     + repr(aliases)
     + "\n\nOPERATIONS = {\n"
 )
+IDEMPOTENT_OPERATIONS = {"findContactEmail", "verifyContactEmail", "findContactPhone"}
 for name, op in ops.items():
     flags = {
         "has_body": op["body"],
         "lookup": name in {"enrichPerson", "enrichCompany", "fetchPerson", "fetchCompany"},
-        "idempotency": name in {"findContactEmail", "findContactPhone"},
+        "idempotency": name in IDEMPOTENT_OPERATIONS,
         "poll": name == "pollWebhook",
     }
     arguments = {"method": op["method"], "path": op["path"], **flags}
@@ -263,7 +264,7 @@ from .._jobs import Job, AsyncJob
                 "max_retries: int | None = None",
                 "headers: Mapping[str, str] | None = None",
             ]
-            if name in {"findContactEmail", "findContactPhone"}:
+            if name in IDEMPOTENT_OPERATIONS:
                 signatures += ["idempotency_key: str | None = None"]
             signatures += ["**extra: object"]
             known = (
@@ -272,7 +273,7 @@ from .._jobs import Job, AsyncJob
             path_values = "{" + ", ".join(f"{p!r}: {snake(p)}" for p in op["paths"]) + "}"
             options = (
                 "RequestOptions(timeout, max_retries, headers"
-                + (", idempotency_key" if name in {"findContactEmail", "findContactPhone"} else "")
+                + (", idempotency_key" if name in IDEMPOTENT_OPERATIONS else "")
                 + ")"
             )
             args = f"OPERATIONS[{name!r}], {path_values}, parameters({known}, extra), {options}"
@@ -287,6 +288,7 @@ from .._jobs import Job, AsyncJob
                     "liveCompany": "models.CompanyFull",
                     "findContactEmail": "list[ContactValue | None]",
                     "findContactPhone": "list[ContactValue | None]",
+                    "verifyContactEmail": "models.ContactEmailVerifyResult",
                 }[name]
                 job_parser = (
                     f"{job_type}.model_validate"

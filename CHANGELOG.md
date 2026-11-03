@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.7 (2026-11-03)
+
+- `contact.verify_email` checks whether an email address can receive mail. It returns a job whose result holds `email` and `status`: `valid`, `risky`, `invalid` or `unknown`. The verdicts are a string enum, `EmailVerificationStatus`, and each submit carries an `Idempotency-Key` like the finders.
+
 ## 0.1.6 (2026-10-30)
 
 - `search.people`, `search.organizations`, `search.count_people` and `search.count_organizations` accept `location.area`, one zone id or a list (`"MR:EMEA"`, `["MC:DACH", "IG:EU"]`): main regions, UN regions and subregions, market clusters and institutional groups.

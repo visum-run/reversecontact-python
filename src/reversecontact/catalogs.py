@@ -11,6 +11,7 @@ __all__ = [
     "ContractType",
     "CountryCode",
     "EmailType",
+    "EmailVerificationStatus",
     "Industry",
     "JobFunction",
     "JobSubFunction",
@@ -1348,3 +1349,13 @@ class EmailType(StrEnum):
     PROFESSIONAL = "professional"
     PERSONAL = "personal"
     ANY = "any"
+
+
+class EmailVerificationStatus(StrEnum):
+    """valid: the address can receive mail. risky: it may receive mail, for example on a catch-
+    all domain. invalid: it cannot receive mail. unknown: the check was inconclusive."""
+
+    VALID = "valid"
+    RISKY = "risky"
+    INVALID = "invalid"
+    UNKNOWN = "unknown"

@@ -428,6 +428,31 @@ class EnrichPersonData(Model):
     is_full_profile: bool | None = Field(None, alias="isFullProfile")
 
 
+class JobResultLine(Model):
+    row: int | None = Field(None, alias="row")
+    input: dict[str, object] | None = Field(None, alias="input")
+    status: str | None = Field(None, alias="status")
+    message: str | None = Field(None, alias="message")
+    credits_consumed: int | float | None = Field(None, alias="creditsConsumed")
+    person: EnrichedPersonFull | EnrichedPersonLight | None = Field(None, alias="person")
+    is_full_profile: bool | None = Field(None, alias="isFullProfile")
+    linkedin_url: str | None = Field(None, alias="linkedinUrl")
+    contact_email: JobResultLineContactEmail | None = Field(None, alias="contactEmail")
+    contact_phone: JobResultLineContactPhone | None = Field(None, alias="contactPhone")
+
+
+class JobResultLineContactEmail(Model):
+    status: str | None = Field(None, alias="status")
+    value: str | None = Field(None, alias="value")
+    personal_value: str | None = Field(None, alias="personalValue")
+
+
+class JobResultLineContactPhone(Model):
+    status: str | None = Field(None, alias="status")
+    value: str | None = Field(None, alias="value")
+    type: str | None = Field(None, alias="type")
+
+
 class EnrichCompanyData(Model):
     company: EnrichedCompanyFull | EnrichedCompanyLight | None = Field(None, alias="company")
     is_full_profile: bool | None = Field(None, alias="isFullProfile")
@@ -1829,6 +1854,12 @@ class GetJobDataLinks(Model):
     operation: str | None = Field(None, alias="operation")
 
 
+class GetJobRowsData(Model):
+    items: builtins.list[JobResultLine | None] | None = Field(None, alias="items")
+    next_cursor: str | None = Field(None, alias="nextCursor")
+    status: str | None = Field(None, alias="status")
+
+
 class CancelJobData(Model):
     id: str | None = Field(None, alias="id")
     type: str | None = Field(None, alias="type")
@@ -1910,6 +1941,9 @@ EnrichedCompanyFullFoundedOn.model_rebuild()
 EnrichedCompanyFullLocationsItem.model_rebuild()
 EnrichedCompanyFullLocation.model_rebuild()
 EnrichPersonData.model_rebuild()
+JobResultLine.model_rebuild()
+JobResultLineContactEmail.model_rebuild()
+JobResultLineContactPhone.model_rebuild()
 EnrichCompanyData.model_rebuild()
 SearchPeopleData.model_rebuild()
 SearchPeopleDataMetadata.model_rebuild()
@@ -2052,6 +2086,7 @@ GetJobDataProgress.model_rebuild()
 GetJobDataCredits.model_rebuild()
 GetJobDataError.model_rebuild()
 GetJobDataLinks.model_rebuild()
+GetJobRowsData.model_rebuild()
 CancelJobData.model_rebuild()
 CancelJobDataProgress.model_rebuild()
 CancelJobDataCredits.model_rebuild()

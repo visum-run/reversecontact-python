@@ -1559,6 +1559,26 @@ class Bulk(BulkHelpers):
             RequestOptions(timeout, max_retries, headers),
         )
 
+    def rows(
+        self,
+        job_id: str,
+        *,
+        cursor: (str | NotGiven | None) = NOT_GIVEN,
+        limit: (int | NotGiven | None) = NOT_GIVEN,
+        timeout: Timeout | None = None,
+        max_retries: int | None = None,
+        headers: Mapping[str, str] | None = None,
+        **extra: object,
+    ) -> Page[models.JobResultLine]:
+        """Call getJobRows. Extra arguments pass through."""
+        return self._page(
+            OPERATIONS["getJobRows"],
+            {"jobId": job_id},
+            parameters({"cursor": cursor, "limit": limit}, extra),
+            RequestOptions(timeout, max_retries, headers),
+            models.JobResultLine.model_validate,
+        )
+
     def cancel(
         self,
         job_id: str,

@@ -71,7 +71,7 @@ def get_method(client, path):
 
 def test_manifest_matches_snapshot():
     assert set(MAPPING) == set(OPERATIONS)
-    assert len(MAPPING) == 39
+    assert len(MAPPING) == 40
 
 
 @pytest.mark.parametrize("operation_id", MAPPING)

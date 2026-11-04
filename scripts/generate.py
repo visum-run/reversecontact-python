@@ -330,7 +330,8 @@ from .._jobs import Job, AsyncJob
             )
             text += f'        """Call {name}. Extra arguments pass through."""\n'
             text += f"        return {await_}{invocation}\n\n"
-            if op["kind"] == "page":
+            # The rows of a Bulk job wait for its items to finish: `iter_rows`, by hand in _jobs.py.
+            if op["kind"] == "page" and name != "getJobRows":
                 helper = "iter_" + method_name if resource == "Search" else "list_all"
                 iter_signatures = [s for s in signatures if not s.startswith("**")]
                 iter_signatures += [

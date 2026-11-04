@@ -1,5 +1,5 @@
 import asyncio
-from collections.abc import Awaitable, Callable, Mapping
+from collections.abc import AsyncIterator, Awaitable, Callable, Iterator, Mapping
 from typing import Generic, TypeVar
 
 from pydantic import Field
@@ -26,7 +26,7 @@ from .errors import (
     retry_after_header,
     seconds,
 )
-from .types import GetJobData, GetListOperationData, JobAckData
+from .types import GetJobData, GetJobRowsData, GetListOperationData, JobAckData, JobResultLine
 
 T = TypeVar("T")
 
@@ -407,6 +407,47 @@ MOVING_BULK_JOB_STATUSES = {"queued", "running"}
 
 
 class BulkHelpers(SyncResource):
+    def iter_rows(
+        self,
+        job_id: str,
+        *,
+        cursor: str | None = None,
+        limit: int | None = None,
+        timeout: Timeout | None = None,
+        max_retries: int | None = None,
+        headers: Mapping[str, str] | None = None,
+    ) -> Iterator[JobResultLine | None]:
+        """The results one item at a time, in the order sent, as they become ready.
+
+        Reads `rows` page by page whatever the job is doing: while the next item runs,
+        it waits `Retry-After` (2 seconds by default) and reads the same cursor again.
+        Ends when `next_cursor` is null, or when the job is paused, since nothing moves
+        until someone resumes it: read on later with `rows` and the last cursor. A
+        cancelled job still finishes the items it had started, within the hour: it
+        waits for them too.
+        """
+        options = RequestOptions(timeout, max_retries, headers)
+        while True:
+            response = self._transport.request(
+                OPERATIONS["getJobRows"],
+                {"jobId": job_id},
+                {"cursor": cursor, "limit": limit},
+                options,
+                ALIASES,
+            )
+            page = result(response, GetJobRowsData.model_validate).data
+            items = (page.items or []) if page is not None else []
+            yield from items
+            cursor = page.next_cursor if page is not None else None
+            if page is None or cursor is None:
+                return
+            if not items:
+                if page.status == "paused":
+                    return
+                self._transport.sleep(
+                    list_pacing(retry_after_header(response.http_response.headers))
+                )
+
     def wait(
         self,
         job_id: str,
@@ -448,6 +489,48 @@ class BulkHelpers(SyncResource):
 
 
 class AsyncBulkHelpers(AsyncResource):
+    async def iter_rows(
+        self,
+        job_id: str,
+        *,
+        cursor: str | None = None,
+        limit: int | None = None,
+        timeout: Timeout | None = None,
+        max_retries: int | None = None,
+        headers: Mapping[str, str] | None = None,
+    ) -> AsyncIterator[JobResultLine | None]:
+        """The results one item at a time, in the order sent, as they become ready.
+
+        Reads `rows` page by page whatever the job is doing: while the next item runs,
+        it waits `Retry-After` (2 seconds by default) and reads the same cursor again.
+        Ends when `next_cursor` is null, or when the job is paused, since nothing moves
+        until someone resumes it: read on later with `rows` and the last cursor. A
+        cancelled job still finishes the items it had started, within the hour: it
+        waits for them too.
+        """
+        options = RequestOptions(timeout, max_retries, headers)
+        while True:
+            response = await self._transport.request(
+                OPERATIONS["getJobRows"],
+                {"jobId": job_id},
+                {"cursor": cursor, "limit": limit},
+                options,
+                ALIASES,
+            )
+            page = result(response, GetJobRowsData.model_validate).data
+            items = (page.items or []) if page is not None else []
+            for item in items:
+                yield item
+            cursor = page.next_cursor if page is not None else None
+            if page is None or cursor is None:
+                return
+            if not items:
+                if page.status == "paused":
+                    return
+                await self._transport.sleep(
+                    list_pacing(retry_after_header(response.http_response.headers))
+                )
+
     async def wait(
         self,
         job_id: str,

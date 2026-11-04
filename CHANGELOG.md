@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0 (2026-11-04)
+
+- `bulk.rows` reads the results of a Bulk enrich job a page at a time (`cursor`, `limit` up to 100), in the order sent, from the start of the run; each item is a `JobResultLine` and the page carries the job status in `extras["status"]`. `bulk.iter_rows` yields the results one at a time as they become ready: it waits `Retry-After` while the next item runs, and ends with the job or when it is paused; a cancelled job first finishes the items it had started, within the hour. Free.
+- `bulk.results` accepts `format="ndjson"` and returns one `JobResultLine` JSON object per line; the CSV stays the default. In both, an item a cancelled job had started and not finished yet reads `running`.
+- `reversecontact.types` exports `JobResultLine` and `GetJobRowsData`.
+
 ## 0.2.0 (2026-11-04)
 
 - `lists` manages your saved lists: `list`, `list_all`, `create`, `retrieve`, `delete`, `export` (CSV) and `import_signals`.

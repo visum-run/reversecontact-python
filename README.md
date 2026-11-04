@@ -71,6 +71,8 @@ Keep API keys on your server. Both `rc_*` API keys and `oat_*` tokens work; the 
 | Lists | `lists.list`, `lists.create`, `lists.retrieve`, `lists.delete`, `lists.export`, `lists.import_signals` | `client.lists.create(name="Prospects", entity="persons")` |
 | List members | `lists.members.list`, `lists.members.add`, `lists.members.remove` | `client.lists.members.remove("list-id", member_ids=["member-id"])` |
 | List operations | `lists.operations.retrieve`, `lists.operations.cancel`, `lists.operations.wait` | `client.lists.operations.retrieve("list-id", "operation-id", wait=20)` |
+| Bulk enrich | `bulk.enrich_persons`, `bulk.list`, `bulk.list_all`, `bulk.retrieve`, `bulk.wait`, `bulk.cancel` | `client.bulk.retrieve("job-id")` |
+| Bulk results (free) | `bulk.results`, `bulk.rows`, `bulk.iter_rows` | `client.bulk.rows("job-id", limit=100)` |
 
 The asynchronous client has the same resources and methods. Credit costs per endpoint are listed in the [API reference](https://docs.reversecontact.com/api-reference).
 
@@ -162,6 +164,26 @@ with ReverseContact(api_key=os.environ["RC_API_KEY"]) as client:
     )
     print(job.id, job.replayed)
 ```
+
+### Bulk enrich
+
+```python
+with ReverseContact(api_key=os.environ["RC_API_KEY"]) as client:
+    submitted = client.bulk.enrich_persons(
+        items=[{"email": "jane@example.com", "external_id": "crm-42"}], families=["profile"]
+    )
+    if submitted.data and submitted.data.job and submitted.data.job.id:
+        job_id = submitted.data.job.id
+        # Each result in the order sent, as soon as it is ready, while the job runs.
+        for line in client.bulk.iter_rows(job_id):
+            if line is not None:
+                print(line.row, line.status, line.person)
+        # Or the whole file once the job is completed or cancelled.
+        client.bulk.wait(job_id)
+        ndjson = client.bulk.results(job_id, format="ndjson")
+```
+
+`bulk.rows(job_id, cursor=..., limit=...)` reads one page of `JobResultLine` items (at most 100), with the job status in `page.extras["status"]`. While the job runs, a page stops at the first item not finished; `iter_rows` then waits `Retry-After` (2 seconds by default) and reads the same cursor again. It ends when `next_cursor` is `None`, or when the job is paused: read on later with `rows`. A cancelled job still finishes the items it had started, within the hour: `iter_rows` waits for them, while `results` already gives them with the status `running`. `results` returns the file as text, the CSV by default or one JSON object per line with `format="ndjson"`. A job stored before these formats existed raises `ConflictError` (`JOB_RESULTS_FORMAT_UNAVAILABLE`); its CSV stays available.
 
 ### Asynchronous client
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1 (2026-11-04)
+
+- `bulk.list_all` asks for 50 jobs per page by default and accepts `per_page` up to 100, the bounds of `GET /v2/jobs`: it asked for 200 and the API refused the first page.
+
 ## 0.3.0 (2026-11-04)
 
 - `bulk.rows` reads the results of a Bulk enrich job a page at a time (`cursor`, `limit` up to 100), in the order sent, from the start of the run; each item is a `JobResultLine` and the page carries the job status in `extras["status"]`. `bulk.iter_rows` yields the results one at a time as they become ready: it waits `Retry-After` while the next item runs, and ends with the job or when it is paused; a cancelled job first finishes the items it had started, within the hour. Free.

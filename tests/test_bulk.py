@@ -97,6 +97,20 @@ async def test_list_all_follows_the_cursor(h):
     assert h.requests[1].url.params["type"] == "enrich_persons"
 
 
+async def test_list_all_asks_pages_the_jobs_route_accepts(h):
+    h.responses.append(ok({"items": [job("completed")], "nextCursor": None}))
+    await h.collect(h.client.bulk.list_all())
+    assert h.requests[0].url.params["perPage"] == "50"
+
+    h.responses.append(ok({"items": [job("completed")], "nextCursor": None}))
+    await h.collect(h.client.bulk.list_all(per_page=100))
+    assert h.requests[1].url.params["perPage"] == "100"
+
+    with pytest.raises(rc.ReverseContactError):
+        await h.collect(h.client.bulk.list_all(per_page=200))
+    assert len(h.requests) == 2
+
+
 def line(row):
     return {
         "row": row,

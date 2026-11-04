@@ -112,7 +112,15 @@ def iteration_params(
         and (isinstance(max_results, bool) or not isinstance(max_results, int) or max_results < 0)
     ):
         raise ReverseContactError("max_results must be a non-negative integer")
-    default, maximum = (25, 100) if search else (100, 1000) if "/members" in op.path else (200, 200)
+    if search:
+        default, maximum = 25, 100
+    elif "/members" in op.path:
+        default, maximum = 100, 1000
+    elif op.path == "/v2/jobs":
+        # GET /v2/jobs refuses perPage above 100 (JOB_INVALID_INPUT).
+        default, maximum = 50, 100
+    else:
+        default, maximum = 200, 200
     result = deepcopy(dict(params))
     size = result.pop("per_page", result.get("perPage", default))
     if isinstance(size, bool) or not isinstance(size, int) or not 1 <= size <= maximum:

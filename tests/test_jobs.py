@@ -162,6 +162,41 @@ async def test_poll_timeout_floor(h):
     assert h.requests[-1].extensions["timeout"]["read"] >= 35
 
 
+@pytest.mark.parametrize("action", ["done", "resume", "reconcile"])
+async def test_list_operation_wait_actions(h, action):
+    h.responses.extend(
+        [
+            ok(
+                {
+                    "operationId": "op_test",
+                    "clientAction": "poll",
+                    "status": "running",
+                    "pollAfterSeconds": 7,
+                },
+                headers={"Retry-After": "99"},
+            ),
+            ok({"operationId": "op_test", "clientAction": action, "status": "paused"}),
+        ]
+    )
+    result = await h.call(h.client.lists.operations.wait, "list_test", "op_test")
+    assert result.data.client_action == action
+    assert h.clock.sleeps == [7]
+    assert len(h.requests) == 2
+    assert all(request.method == "GET" for request in h.requests)
+    assert h.requests[0].url.path == "/v2/lists/list_test/operations/op_test/progress"
+
+
+async def test_list_operation_header_pacing_and_deadline(h):
+    h.responses.append(
+        ok({"clientAction": "poll", "status": "running"}, headers={"Retry-After": "9"})
+    )
+    with pytest.raises(rc.JobTimeoutError) as caught:
+        await h.call(h.client.lists.operations.wait, "list_test", "op_test", timeout=3)
+    assert caught.value.job_id == "op_test"
+    assert caught.value.last_status == "running"
+    assert h.clock.sleeps == [3]
+
+
 @pytest.mark.parametrize(
     "payload",
     [
@@ -197,3 +232,28 @@ async def test_null_contact_items(h):
     value = await h.call(job.wait)
     assert value.data.result[0] is None
     assert value.data.result[1].value is None
+
+
+async def test_list_poll_missing_pacing_falls_back_to_two_seconds(h):
+    h.responses.extend(
+        [
+            ok({"clientAction": "poll", "status": "running"}),
+            ok({"clientAction": "done", "status": "completed"}),
+        ]
+    )
+    observed = []
+    final = await h.call(
+        h.client.lists.operations.wait, "list_test", "op_test", on_poll=observed.append
+    )
+    assert observed[-1] is final
+    assert all(value.metadata.request_id == "req_test" for value in observed)
+    assert h.clock.sleeps == [2]
+    assert len(h.requests) == 2
+
+
+async def test_list_poll_retries(h):
+    h.responses.extend([failure(503, headers={"Retry-After": "4"}), ok({"clientAction": "done"})])
+    assert (
+        await h.call(h.client.lists.operations.wait, "list_test", "op_test")
+    ).data.client_action == "done"
+    assert h.clock.sleeps == [4]

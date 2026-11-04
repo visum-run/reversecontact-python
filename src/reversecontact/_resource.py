@@ -50,6 +50,15 @@ class SyncResource:
         response = self._transport.request(op, paths, params, options, ALIASES)
         return None if response.no_match else result(response, parser)
 
+    def _text(
+        self,
+        op: Operation,
+        paths: Mapping[str, str],
+        params: Mapping[str, object],
+        options: RequestOptions,
+    ) -> str:
+        return self._transport.request(op, paths, params, options, ALIASES).http_response.text
+
     def _page(
         self,
         op: Operation,
@@ -75,20 +84,22 @@ class SyncResource:
         params: Mapping[str, object],
         options: RequestOptions,
         parser: Callable[[object], T],
-        max_results: int,
+        max_results: int | None,
     ) -> Iterator[T | None]:
-        query, size = iteration_params(params, max_results)
+        query, size = iteration_params(op, params, max_results)
         paths = dict(paths)
 
         def iterate() -> Iterator[T | None]:
             delivered = 0
             cursor = query.get("cursor")
             seen: set[str] = {cursor} if isinstance(cursor, str) else set()
-            while delivered < max_results:
-                query["perPage"] = min(size, max_results - delivered)
+            while max_results is None or delivered < max_results:
+                query["perPage"] = (
+                    size if max_results is None else min(size, max_results - delivered)
+                )
                 page = self._page(op, paths, query, options, parser)
                 for item in page.data:
-                    if delivered >= max_results:
+                    if max_results is not None and delivered >= max_results:
                         return
                     delivered += 1
                     yield item
@@ -140,6 +151,17 @@ class AsyncResource:
         response = await self._transport.request(op, paths, params, options, ALIASES)
         return None if response.no_match else result(response, parser)
 
+    async def _text(
+        self,
+        op: Operation,
+        paths: Mapping[str, str],
+        params: Mapping[str, object],
+        options: RequestOptions,
+    ) -> str:
+        return (
+            await self._transport.request(op, paths, params, options, ALIASES)
+        ).http_response.text
+
     async def _page(
         self,
         op: Operation,
@@ -165,20 +187,22 @@ class AsyncResource:
         params: Mapping[str, object],
         options: RequestOptions,
         parser: Callable[[object], T],
-        max_results: int,
+        max_results: int | None,
     ) -> AsyncIterator[T | None]:
-        query, size = iteration_params(params, max_results)
+        query, size = iteration_params(op, params, max_results)
         paths = dict(paths)
 
         async def iterate() -> AsyncIterator[T | None]:
             delivered = 0
             cursor = query.get("cursor")
             seen: set[str] = {cursor} if isinstance(cursor, str) else set()
-            while delivered < max_results:
-                query["perPage"] = min(size, max_results - delivered)
+            while max_results is None or delivered < max_results:
+                query["perPage"] = (
+                    size if max_results is None else min(size, max_results - delivered)
+                )
                 page = await self._page(op, paths, query, options, parser)
                 for item in page.data:
-                    if delivered >= max_results:
+                    if max_results is not None and delivered >= max_results:
                         return
                     delivered += 1
                     yield item

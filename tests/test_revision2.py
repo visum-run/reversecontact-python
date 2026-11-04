@@ -39,10 +39,12 @@ class BrokenAsyncBody(httpx.AsyncByteStream):
 def method_for(h, method):
     if method == "POST":
         return h.client.enrich.person, (), {"email": "jane@example.com"}
+    if method == "DELETE":
+        return h.client.lists.delete, ("list_test",), {}
     return h.client.usage.retrieve, (), {}
 
 
-@pytest.mark.parametrize("method", ["GET", "POST"])
+@pytest.mark.parametrize("method", ["GET", "DELETE", "POST"])
 @pytest.mark.parametrize("status", [200, 401, 429, 500, 502, 503, 504])
 async def test_broken_body_preserves_status_and_safe_retry_policy(h, method, status):
     stream = BrokenAsyncBody() if h.asynchronous else BrokenSyncBody()
@@ -76,7 +78,7 @@ async def test_unreadable_error_body_without_retries(h, status):
     assert caught.value.headers["retry-after"] == "3"
 
 
-@pytest.mark.parametrize("method", ["GET", "POST"])
+@pytest.mark.parametrize("method", ["GET", "DELETE", "POST"])
 @pytest.mark.parametrize(
     "error_type",
     [
@@ -93,7 +95,7 @@ async def test_unreadable_error_body_without_retries(h, status):
 async def test_before_headers_network_retry_policy(h, method, error_type):
     h.responses.extend([error_type("network failure"), ok({})])
     function, args, kwargs = method_for(h, method)
-    if method == "GET" or error_type in {httpx.ConnectError, httpx.ConnectTimeout}:
+    if method in {"GET", "DELETE"} or error_type in {httpx.ConnectError, httpx.ConnectTimeout}:
         await h.call(function, *args, **kwargs)
         assert len(h.requests) == 2
     else:
@@ -122,14 +124,16 @@ async def test_server_delay_ceiling(h, status, hint, delay):
         assert h.clock.sleeps == [60]
 
 
-@pytest.mark.parametrize("entry", ["job", "jobs"])
+@pytest.mark.parametrize("entry", ["job", "jobs", "lists"])
 async def test_overall_deadline_during_inflight_poll(h, entry):
     if entry == "job":
         h.responses.append(ok({"webhookId": "job_test"}))
         job = await h.call(h.client.fetch.person_live, url="https://social.com/in/jane")
         function, args = job.wait, ()
-    else:
+    elif entry == "jobs":
         function, args = h.client.jobs.wait, ("job_test",)
+    else:
+        function, args = h.client.lists.operations.wait, ("list_test", "op_test")
     h.client._transport.clock = time.monotonic
     caller_thread = threading.get_ident()
     finished = False
@@ -145,7 +149,7 @@ async def test_overall_deadline_during_inflight_poll(h, entry):
         nonlocal finished
         try:
             await asyncio.sleep(2)
-            return ok({"status": "succeeded"})
+            return ok({"status": "succeeded", "clientAction": "done"})
         finally:
             finished = True
 
@@ -155,7 +159,7 @@ async def test_overall_deadline_during_inflight_poll(h, entry):
         await h.call(function, *args, timeout=0.03)
     elapsed = time.monotonic() - started
     assert 0.015 <= elapsed < 0.3
-    assert caught.value.job_id == "job_test"
+    assert caught.value.job_id == ("op_test" if entry == "lists" else "job_test")
     request = h.requests[-1]
     assert request.url.params["wait"] == "0"
     assert all(0 < value <= 0.03 for value in request.extensions["timeout"].values())
@@ -163,17 +167,20 @@ async def test_overall_deadline_during_inflight_poll(h, entry):
     assert not h.clock.sleeps
 
 
-async def test_deadline_caps_http_components_and_preserves_last_status(h):
+@pytest.mark.parametrize("entry", ["jobs", "lists"])
+async def test_deadline_caps_http_components_and_preserves_last_status(h, entry):
     h.client._transport.timeout = httpx.Timeout(None, read=4)
-    h.responses.append(ok({"status": "running"}))
+    h.responses.append(ok({"status": "running", "clientAction": "poll"}))
 
     def expired(request):
         h.clock.now = 3
         raise httpx.ReadTimeout("deadline")
 
     h.responses.append(expired)
+    function = h.client.jobs.wait if entry == "jobs" else h.client.lists.operations.wait
+    args = ("job_test",) if entry == "jobs" else ("list_test", "op_test")
     with pytest.raises(rc.JobTimeoutError) as caught:
-        await h.call(h.client.jobs.wait, "job_test", timeout=3)
+        await h.call(function, *args, timeout=3)
     assert caught.value.last_status == "running"
     assert isinstance(caught.value.__context__, rc.APITimeoutError)
     assert h.requests[0].extensions["timeout"] == dict.fromkeys(
@@ -190,14 +197,27 @@ async def test_search_budget_rejected_at_iterator_creation(h, budget):
     assert not h.requests
 
 
-async def test_iterator_page_sizes(h):
-    h.responses.append(ok({"data": [], "metadata": {"nextCursor": None}}))
-    await h.collect(h.client.search.iter_people(max_results=2000, first_name="Jane"))
+@pytest.mark.parametrize(
+    "family,default,maximum", [("search", 25, 100), ("lists", 200, 200), ("members", 100, 1000)]
+)
+async def test_iterator_page_sizes(h, family, default, maximum):
+    if family == "search":
+        function, args, kwargs = (
+            h.client.search.iter_people,
+            (),
+            {"max_results": 2000, "first_name": "Jane"},
+        )
+    elif family == "lists":
+        function, args, kwargs = h.client.lists.list_all, (), {}
+    else:
+        function, args, kwargs = h.client.lists.members.list_all, ("list_test",), {}
+    h.responses.append(ok({"items": [], "nextCursor": None}))
+    await h.collect(function(*args, **kwargs))
     request = h.requests[-1]
-    payload = json.loads(request.content)
-    assert payload["perPage"] == 25
+    payload = json.loads(request.content) if family == "search" else dict(request.url.params)
+    assert int(payload["perPage"]) == default
     with pytest.raises(rc.ReverseContactError, match="per_page"):
-        h.client.search.iter_people(max_results=2000, per_page=101)
+        function(*args, **kwargs, per_page=maximum + 1)
     assert len(h.requests) == 1
 
 
@@ -244,16 +264,26 @@ async def test_page_extras_and_typed_known_counts(h):
     h.responses.append(
         ok(
             {
-                "data": [],
-                "metadata": {"count": 1, "perPage": 100, "nextCursor": None},
+                "items": [],
+                "memberCount": 7,
+                "pendingIntakeCount": 2,
+                "count": 1,
+                "perPage": 100,
                 "future": {"value": True},
+                "nextCursor": None,
             }
         )
     )
-    page = await h.call(h.client.search.people, first_name="Jane")
+    page = await h.call(h.client.lists.members.list, "list_test")
+    assert page.member_count == 7
+    assert page.pending_intake_count == 2
     assert page.count == 1
     assert page.per_page == 100
     assert page.extras == {
+        "memberCount": 7,
+        "pendingIntakeCount": 2,
+        "count": 1,
+        "perPage": 100,
         "future": {"value": True},
     }
 

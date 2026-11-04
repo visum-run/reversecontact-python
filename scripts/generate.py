@@ -135,9 +135,11 @@ for path, methods in SPEC["paths"].items():
         success = next(v for k, v in operation["responses"].items() if k.startswith("2"))
         schema = resolve(success.get("content", {}).get("application/json", {}).get("schema", {}))
         data = schema.get("properties", {}).get("data", {})
-        result = annotation(data, pascal(name) + "Data")
+        result = annotation(data, pascal(name) + "Data") if entry["kind"] != "text" else "str"
         if entry["kind"] == "page":
-            item_schema = resolve(data)["properties"]["data"]["items"]
+            item_schema = resolve(data)["properties"].get(
+                "data", resolve(data)["properties"].get("items")
+            )["items"]
             item = annotation(item_schema, pascal(name) + "Item")
         else:
             item = None
@@ -185,12 +187,16 @@ registry = (
     + "\n\nOPERATIONS = {\n"
 )
 IDEMPOTENT_OPERATIONS = {"findContactEmail", "verifyContactEmail", "findContactPhone"}
+KEYED_OPERATIONS = IDEMPOTENT_OPERATIONS | {"createList", "bulkEnrichPersons"}
 for name, op in ops.items():
     flags = {
         "has_body": op["body"],
         "lookup": name in {"enrichPerson", "enrichCompany", "fetchPerson", "fetchCompany"},
         "idempotency": name in IDEMPOTENT_OPERATIONS,
-        "poll": name == "pollWebhook",
+        "list_idempotency": name in {"createList", "bulkEnrichPersons"},
+        "import_operation": name == "importListSignals",
+        "text": op["kind"] == "text",
+        "poll": name in {"pollWebhook", "getListOperation", "getJob"},
     }
     arguments = {"method": op["method"], "path": op["path"], **flags}
     registry += (
@@ -208,6 +214,10 @@ resource_names = [
     "Contact",
     "Jobs",
     "Usage",
+    "Lists",
+    "Members",
+    "Operations",
+    "Bulk",
 ]
 for asynchronous in (False, True):
     prefix = "Async" if asynchronous else ""
@@ -228,12 +238,12 @@ from .._jobs import Job, AsyncJob
     for resource in resource_names:
         base = (
             prefix + resource + "Helpers"
-            if resource == "Jobs"
+            if resource in {"Jobs", "Operations", "Bulk"}
             else prefix + "Resource"
             if asynchronous
             else "SyncResource"
         )
-        if resource == "Jobs":
+        if resource in {"Jobs", "Operations", "Bulk"}:
             text += f"from .._jobs import {base}\n"
     for resource in resource_names:
         group = {
@@ -244,12 +254,20 @@ from .._jobs import Job, AsyncJob
         }
         base = (
             prefix + resource + "Helpers"
-            if resource == "Jobs"
+            if resource in {"Jobs", "Operations", "Bulk"}
             else "AsyncResource"
             if asynchronous
             else "SyncResource"
         )
         text += f"\nclass {prefix}{resource}({base}):\n"
+        if resource == "Lists":
+            transport = "AsyncTransport" if asynchronous else "SyncTransport"
+            text += (
+                f"    def __init__(self, transport: {transport}) -> None:\n"
+                "        super().__init__(transport)\n"
+                f"        self.members = {prefix}Members(transport)\n"
+                f"        self.operations = {prefix}Operations(transport)\n\n"
+            )
         for name, op in group.items():
             method_name = op["py"].split(".")[-1]
             signatures = [f"{snake(p)}: str" for p in op["paths"]]
@@ -264,7 +282,7 @@ from .._jobs import Job, AsyncJob
                 "max_retries: int | None = None",
                 "headers: Mapping[str, str] | None = None",
             ]
-            if name in IDEMPOTENT_OPERATIONS:
+            if name in KEYED_OPERATIONS:
                 signatures += ["idempotency_key: str | None = None"]
             signatures += ["**extra: object"]
             known = (
@@ -273,7 +291,7 @@ from .._jobs import Job, AsyncJob
             path_values = "{" + ", ".join(f"{p!r}: {snake(p)}" for p in op["paths"]) + "}"
             options = (
                 "RequestOptions(timeout, max_retries, headers"
-                + (", idempotency_key" if name in IDEMPOTENT_OPERATIONS else "")
+                + (", idempotency_key" if name in KEYED_OPERATIONS else "")
                 + ")"
             )
             args = f"OPERATIONS[{name!r}], {path_values}, parameters({known}, extra), {options}"
@@ -297,6 +315,9 @@ from .._jobs import Job, AsyncJob
                 )
                 returned = f"{prefix}Job[{job_type}]"
                 invocation = f"self._job({args}, {job_parser})"
+            elif op["kind"] == "text":
+                returned = "str"
+                invocation = f"self._text({args})"
             else:
                 returned = f"Result[{result}]"
                 if name in {"enrichPerson", "enrichCompany", "fetchPerson", "fetchCompany"}:
@@ -310,10 +331,12 @@ from .._jobs import Job, AsyncJob
             text += f'        """Call {name}. Extra arguments pass through."""\n'
             text += f"        return {await_}{invocation}\n\n"
             if op["kind"] == "page":
-                helper = "iter_" + method_name
+                helper = "iter_" + method_name if resource == "Search" else "list_all"
                 iter_signatures = [s for s in signatures if not s.startswith("**")]
                 iter_signatures += [
-                    "max_results: int",
+                    "max_results: int"
+                    if resource == "Search"
+                    else "max_results: int | None = None",
                     "**extra: object",
                 ]
                 iterator = "AsyncIterator" if asynchronous else "Iterator"
@@ -328,6 +351,7 @@ from .._jobs import Job, AsyncJob
                 text += f"        return {iteration}\n\n"
     text = text.replace(
         "from .._models import",
+        "from .._http import SyncTransport, AsyncTransport\n"
         "from .._jobs import parse_contacts\nfrom .._models import",
     )
     text = text.replace("list[", "builtins.list[").replace(

@@ -98,7 +98,7 @@ def test_all_documented_request_literals_match_snapshot():
                 function = function.value
             if not isinstance(function, ast.Name) or function.id != "client":
                 continue
-            name = ".".join(reversed(names)).replace("iter_", "")
+            name = ".".join(reversed(names)).replace("iter_", "").replace("list_all", "list")
             name = name.replace(".wait", ".retrieve")
             if name not in by_method:
                 continue

@@ -1,3 +1,5 @@
+import json
+
 import httpx
 import pytest
 
@@ -100,7 +102,7 @@ async def test_server_backoff(h, status):
     ],
 )
 async def test_server_retry_hints(h, details, headers, delay):
-    h.responses.extend([failure(503, "SERVICE_UNAVAILABLE", details, headers=headers), ok()])
+    h.responses.extend([failure(503, "LISTS_PREPARING", details, headers=headers), ok()])
     await h.call(h.client.usage.retrieve)
     assert h.clock.sleeps == [delay]
 
@@ -134,6 +136,40 @@ async def test_timeouts_and_connections(h):
     with pytest.raises(rc.APIConnectionError) as caught:
         await h.call(h.client.usage.retrieve, max_retries=0)
     assert isinstance(caught.value.__cause__, httpx.ConnectError)
+
+
+@pytest.mark.parametrize("provided", [None, "customer-key"])
+async def test_create_list_idempotency(h, provided):
+    h.responses.extend([failure(503), ok({"id": "list_test"})])
+    await h.call(h.client.lists.create, name="Test", entity="persons", idempotency_key=provided)
+    keys = [request.headers["Idempotency-Key"] for request in h.requests]
+    assert keys[0] == keys[1]
+    assert keys[0] == provided if provided else len(keys[0]) == 36
+
+
+@pytest.mark.parametrize("kind", ["timeout", "in_use"])
+async def test_create_list_keeps_the_post_retry_policy(h, kind):
+    h.responses.append(
+        httpx.ReadTimeout("after send")
+        if kind == "timeout"
+        else failure(409, "IDEMPOTENCY_KEY_IN_USE", headers={"Retry-After": "1"})
+    )
+    with pytest.raises(rc.APIConnectionError if kind == "timeout" else rc.ConflictError):
+        await h.call(h.client.lists.create, name="Test", entity="persons")
+    assert len(h.requests) == 1
+    assert not h.clock.sleeps
+
+
+@pytest.mark.parametrize("provided", [None, "operation-customer"])
+async def test_import_operation_id_reused(h, provided):
+    h.responses.extend([failure(503), ok({"operationId": "op_test"})])
+    kwargs = {"operation_id": provided} if provided else {}
+    await h.call(
+        h.client.lists.import_signals, "list_test", signals=[{"email": "a@example.com"}], **kwargs
+    )
+    ids = [json.loads(request.content)["operationId"] for request in h.requests]
+    assert ids[0] == ids[1]
+    assert ids[0] == provided if provided else len(ids[0]) == 36
 
 
 @pytest.mark.parametrize("status", [400, 401, 402, 403, 404, 409, 410, 422, 451, 501])

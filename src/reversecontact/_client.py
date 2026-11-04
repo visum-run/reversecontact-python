@@ -51,6 +51,8 @@ class ReverseContact:
         self.contact = sync.Contact(self._transport)
         self.jobs = sync.Jobs(self._transport)
         self.usage = sync.Usage(self._transport)
+        self.lists = sync.Lists(self._transport)
+        self.bulk = sync.Bulk(self._transport)
 
     def with_options(
         self,
@@ -138,6 +140,8 @@ class AsyncReverseContact:
         self.contact = async_.AsyncContact(self._transport)
         self.jobs = async_.AsyncJobs(self._transport)
         self.usage = async_.AsyncUsage(self._transport)
+        self.lists = async_.AsyncLists(self._transport)
+        self.bulk = async_.AsyncBulk(self._transport)
 
     def with_options(
         self,

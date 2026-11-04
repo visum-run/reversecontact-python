@@ -57,6 +57,9 @@ class Operation:
     has_body: bool = False
     lookup: bool = False
     idempotency: bool = False
+    list_idempotency: bool = False
+    import_operation: bool = False
+    text: bool = False
     poll: bool = False
 
 
@@ -116,6 +119,8 @@ def retry_delay(error: APIError, attempt: int, *, idempotent: bool = False) -> f
 
 
 def parse_response(response: httpx.Response, op: Operation) -> Response:
+    if op.text and response.is_success:
+        return Response(response, response.text)
     is_json = True
     try:
         body: object = response.json()
@@ -232,6 +237,12 @@ class TransportBase:
             headers["Idempotency-Key"] = (
                 validate_idempotency_key(key) if key is not None else str(uuid4())
             )
+        if op.list_idempotency:
+            headers["Idempotency-Key"] = (
+                options.idempotency_key or headers.get("Idempotency-Key") or str(uuid4())
+            )
+        if op.import_operation and payload.get("operationId") is None:
+            payload["operationId"] = str(uuid4())
         timeout = httpx.Timeout(options.timeout if options.timeout is not None else self.timeout)
         if op.poll:
             wait = payload.get("wait", 0)

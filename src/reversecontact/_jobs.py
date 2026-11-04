@@ -26,7 +26,7 @@ from .errors import (
     retry_after_header,
     seconds,
 )
-from .types import JobAckData
+from .types import GetJobData, GetListOperationData, JobAckData
 
 T = TypeVar("T")
 
@@ -304,6 +304,185 @@ class AsyncJobsHelpers(AsyncResource):
         return await AsyncJob(self._transport, existing(job_id), lambda value: value).wait(
             timeout=timeout, poll_wait=poll_wait, on_poll=on_poll, headers=headers
         )
+
+
+def list_pacing(value: float | None) -> float:
+    parsed = seconds(value)
+    return parsed if parsed is not None else 2
+
+
+class OperationsHelpers(SyncResource):
+    def wait(
+        self,
+        list_id: str,
+        operation_id: str,
+        *,
+        timeout: float = 1800,
+        poll_wait: int = 20,
+        on_poll: Callable[[Result[GetListOperationData]], None] | None = None,
+        headers: Mapping[str, str] | None = None,
+    ) -> Result[GetListOperationData]:
+        """Wait in the caller's thread with each HTTP phase capped by the deadline.
+
+        The overall deadline may be exceeded by one bounded HTTP phase before
+        JobTimeoutError is raised, preserving the operation id and last status.
+        """
+        state = PollState(operation_id, timeout, poll_wait, self._transport.clock)
+        while True:
+            wait = state.wait_seconds()
+            try:
+                response = self._transport.request(
+                    OPERATIONS["getListOperation"],
+                    {"listId": list_id, "operationId": operation_id},
+                    {"wait": wait},
+                    RequestOptions(max_retries=0, headers=headers, deadline=state.deadline),
+                    ALIASES,
+                )
+            except (APIError, APIConnectionError) as error:
+                self._transport.sleep(state.failure_delay(error))
+                continue
+            value = result(response, GetListOperationData.model_validate)
+            state.failures = 0
+            state.last_status = value.data.status if value.data is not None else None
+            state.remaining()
+            if on_poll:
+                on_poll(value)
+            if value.data is not None:
+                if value.data.client_action != "poll":
+                    return value
+                pacing: float | None = value.data.poll_after_seconds
+            else:
+                pacing = None
+            if pacing is None:
+                pacing = retry_after_header(response.http_response.headers)
+            self._transport.sleep(min(list_pacing(pacing), state.remaining()))
+
+
+class AsyncOperationsHelpers(AsyncResource):
+    async def wait(
+        self,
+        list_id: str,
+        operation_id: str,
+        *,
+        timeout: float = 1800,
+        poll_wait: int = 20,
+        on_poll: Callable[[Result[GetListOperationData]], None] | None = None,
+        headers: Mapping[str, str] | None = None,
+    ) -> Result[GetListOperationData]:
+        state = PollState(operation_id, timeout, poll_wait, self._transport.clock)
+        while True:
+            wait = state.wait_seconds()
+            try:
+                response = await state.arun(
+                    self._transport.request(
+                        OPERATIONS["getListOperation"],
+                        {"listId": list_id, "operationId": operation_id},
+                        {"wait": wait},
+                        RequestOptions(max_retries=0, headers=headers, deadline=state.deadline),
+                        ALIASES,
+                    )
+                )
+            except (APIError, APIConnectionError) as error:
+                await self._transport.sleep(state.failure_delay(error))
+                continue
+            value = result(response, GetListOperationData.model_validate)
+            state.failures = 0
+            state.last_status = value.data.status if value.data is not None else None
+            state.remaining()
+            if on_poll:
+                on_poll(value)
+            if value.data is not None:
+                if value.data.client_action != "poll":
+                    return value
+                pacing: float | None = value.data.poll_after_seconds
+            else:
+                pacing = None
+            if pacing is None:
+                pacing = retry_after_header(response.http_response.headers)
+            await self._transport.sleep(min(list_pacing(pacing), state.remaining()))
+
+
+# A job in these states still moves; any other state is where wait() stops.
+MOVING_BULK_JOB_STATUSES = {"queued", "running"}
+
+
+class BulkHelpers(SyncResource):
+    def wait(
+        self,
+        job_id: str,
+        *,
+        timeout: float = 1800,
+        poll_wait: int = 20,
+        on_poll: Callable[[Result[GetJobData]], None] | None = None,
+        headers: Mapping[str, str] | None = None,
+    ) -> Result[GetJobData]:
+        """Wait until the job no longer moves: completed, cancelled, failed, or paused.
+
+        The overall deadline may be exceeded by one bounded HTTP phase before
+        JobTimeoutError is raised, preserving the job id and last status.
+        """
+        state = PollState(job_id, timeout, poll_wait, self._transport.clock)
+        while True:
+            wait = state.wait_seconds()
+            try:
+                response = self._transport.request(
+                    OPERATIONS["getJob"],
+                    {"jobId": job_id},
+                    {"wait": wait},
+                    RequestOptions(max_retries=0, headers=headers, deadline=state.deadline),
+                    ALIASES,
+                )
+            except (APIError, APIConnectionError) as error:
+                self._transport.sleep(state.failure_delay(error))
+                continue
+            value = result(response, GetJobData.model_validate)
+            state.failures = 0
+            state.last_status = value.data.status if value.data is not None else None
+            state.remaining()
+            if on_poll:
+                on_poll(value)
+            if value.data is not None and value.data.status not in MOVING_BULK_JOB_STATUSES:
+                return value
+            pacing = retry_after_header(response.http_response.headers)
+            self._transport.sleep(min(list_pacing(pacing), state.remaining()))
+
+
+class AsyncBulkHelpers(AsyncResource):
+    async def wait(
+        self,
+        job_id: str,
+        *,
+        timeout: float = 1800,
+        poll_wait: int = 20,
+        on_poll: Callable[[Result[GetJobData]], None] | None = None,
+        headers: Mapping[str, str] | None = None,
+    ) -> Result[GetJobData]:
+        state = PollState(job_id, timeout, poll_wait, self._transport.clock)
+        while True:
+            wait = state.wait_seconds()
+            try:
+                response = await state.arun(
+                    self._transport.request(
+                        OPERATIONS["getJob"],
+                        {"jobId": job_id},
+                        {"wait": wait},
+                        RequestOptions(max_retries=0, headers=headers, deadline=state.deadline),
+                        ALIASES,
+                    )
+                )
+            except (APIError, APIConnectionError) as error:
+                await self._transport.sleep(state.failure_delay(error))
+                continue
+            value = result(response, GetJobData.model_validate)
+            state.failures = 0
+            state.last_status = value.data.status if value.data is not None else None
+            state.remaining()
+            if on_poll:
+                on_poll(value)
+            if value.data is not None and value.data.status not in MOVING_BULK_JOB_STATUSES:
+                return value
+            pacing = retry_after_header(response.http_response.headers)
+            await self._transport.sleep(min(list_pacing(pacing), state.remaining()))
 
 
 class WebhookDelivery(Model):

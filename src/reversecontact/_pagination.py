@@ -21,8 +21,8 @@ class PageBase(Generic[T]):
     ) -> None:
         envelope = as_dict(response.body)
         payload = as_dict(envelope.get("data"))
-        paging = as_dict(payload.get("metadata"))
-        items = payload.get("data")
+        paging = as_dict(payload.get("metadata")) if "data" in payload else payload
+        items = payload.get("data", payload.get("items"))
         self.data = (
             [parser(item) if item is not None else None for item in items]
             if isinstance(items, list)
@@ -43,6 +43,8 @@ class PageBase(Generic[T]):
         )
         self.count = number(paging.get("count"))
         self.per_page = number(paging.get("perPage"))
+        self.member_count = number(payload.get("memberCount"))
+        self.pending_intake_count = number(payload.get("pendingIntakeCount"))
         self.interpretation: (
             SearchPeoplePromptDataInterpretation
             | SearchOrganizationsPromptDataInterpretation
@@ -57,7 +59,9 @@ class PageBase(Generic[T]):
                 self.interpretation = SearchPeoplePromptDataInterpretation.model_validate(
                     payload["interpretation"]
                 )
-        self.extras = {k: v for k, v in payload.items() if k not in {"data", "metadata"}}
+        self.extras = {
+            k: v for k, v in payload.items() if k not in {"data", "items", "metadata", "nextCursor"}
+        }
 
     def has_next_page(self) -> bool:
         return self.next_cursor is not None
@@ -100,12 +104,17 @@ def number(value: object) -> int | float | None:
 
 
 def iteration_params(
-    params: Mapping[str, object], max_results: int
+    op: Operation, params: Mapping[str, object], max_results: int | None
 ) -> tuple[dict[str, object], int]:
-    if isinstance(max_results, bool) or not isinstance(max_results, int) or max_results < 0:
+    search = op.path.startswith("/v2/search/")
+    if (search and max_results is None) or (
+        max_results is not None
+        and (isinstance(max_results, bool) or not isinstance(max_results, int) or max_results < 0)
+    ):
         raise ReverseContactError("max_results must be a non-negative integer")
+    default, maximum = (25, 100) if search else (100, 1000) if "/members" in op.path else (200, 200)
     result = deepcopy(dict(params))
-    size = result.pop("per_page", result.get("perPage", 25))
-    if isinstance(size, bool) or not isinstance(size, int) or not 1 <= size <= 100:
-        raise ReverseContactError("per_page must be an integer from 1 to 100")
+    size = result.pop("per_page", result.get("perPage", default))
+    if isinstance(size, bool) or not isinstance(size, int) or not 1 <= size <= maximum:
+        raise ReverseContactError(f"per_page must be an integer from 1 to {maximum}")
     return result, size

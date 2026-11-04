@@ -7,7 +7,7 @@
 
 Reverse Contact is a B2B data API: enrich people and companies, fetch profiles, search people and organizations, and find email addresses and phone numbers.
 
-This is the official Python client for the Reverse Contact V2 API: synchronous and asynchronous clients, typed Pydantic models, automatic retries, cursor pagination and asynchronous jobs.
+This is the official Python client for the Reverse Contact V2 API: synchronous and asynchronous clients, typed Pydantic models, automatic retries, cursor pagination, asynchronous jobs and Lists.
 
 [Documentation](https://docs.reversecontact.com/sdk/python) · [API reference](https://docs.reversecontact.com/api-reference) · [Get an API key](https://app.reversecontact.com) · [Changelog](https://github.com/visum-run/reversecontact-python/blob/main/CHANGELOG.md)
 
@@ -68,8 +68,13 @@ Keep API keys on your server. Both `rc_*` API keys and `oat_*` tokens work; the 
 | Contact discovery (job) | `contact.find_email`, `contact.find_phone`, `contact.verify_email` | `client.contact.verify_email(email="jane@example.com")` |
 | Jobs | `jobs.retrieve`, `jobs.wait` | `client.jobs.retrieve("saved-job-id", wait=20)` |
 | Usage (free) | `usage.retrieve` | `client.usage.retrieve().quotas` |
+| Lists | `lists.list`, `lists.create`, `lists.retrieve`, `lists.delete`, `lists.export`, `lists.import_signals` | `client.lists.create(name="Prospects", entity="persons")` |
+| List members | `lists.members.list`, `lists.members.add`, `lists.members.remove` | `client.lists.members.remove("list-id", member_ids=["member-id"])` |
+| List operations | `lists.operations.retrieve`, `lists.operations.cancel`, `lists.operations.wait` | `client.lists.operations.retrieve("list-id", "operation-id", wait=20)` |
 
 The asynchronous client has the same resources and methods. Credit costs per endpoint are listed in the [API reference](https://docs.reversecontact.com/api-reference).
+
+The Lists API is available only in enabled environments. Disabled endpoints can return `GoneError` with an `alternative` property. CSV exports return a string: `csv_text = client.lists.export("list-id")`.
 
 Path ids are positional. Body and query arguments use snake_case; their exact API camelCase spellings also work. Unknown keyword arguments pass through unchanged. Known nested fields in dictionaries also accept snake_case. Omitted fields stay omitted, and explicit `None` is sent as JSON null in a body. No URL domain is validated locally.
 
@@ -209,7 +214,7 @@ with ReverseContact(
     )
 ```
 
-Every operation accepts keyword-only `timeout`, `max_retries`, and `headers` overrides. `contact.find_email`, `contact.find_phone` and `contact.verify_email` also accept `idempotency_key`. A timeout can be a float or `httpx.Timeout`; the default is 90 seconds, including on an injected HTTP client. A single long poll uses at least `wait + 15` seconds for each finite HTTP timeout component. In a `wait()` helper, the remaining overall deadline caps every HTTP timeout component. Async waits also cap the complete in-flight poll; sync waits can exceed the deadline by one bounded HTTP phase.
+Every operation accepts keyword-only `timeout`, `max_retries`, and `headers` overrides. `contact.find_email`, `contact.find_phone`, `contact.verify_email`, and `lists.create` also accept `idempotency_key`. A timeout can be a float or `httpx.Timeout`; the default is 90 seconds, including on an injected HTTP client. A single long poll uses at least `wait + 15` seconds for each finite HTTP timeout component. In a `wait()` helper, the remaining overall deadline caps every HTTP timeout component. Async waits also cap the complete in-flight poll; sync waits can exceed the deadline by one bounded HTTP phase.
 
 Inject `http_client=httpx.Client(...)` or `httpx.AsyncClient(...)` for custom transports, connection pools, or proxies. Context managers and `close()` close only SDK-owned clients. You remain responsible for closing an injected client. `sleep` and `clock` are injectable for deterministic tests; the async client expects an asynchronous sleep function.
 
@@ -236,16 +241,22 @@ assert person.to_dict() == {"firstName": "Jane", "futureField": 0}
 
 ## Pagination and credit budgets
 
-Search methods return `Page[T]` or `AsyncPage[T]`. A page exposes `.data` as an item array, `.next_cursor`, `.has_next_page()`, and `.get_next_page()`, which returns `None` after the last page. Quotas and request metadata describe that page. Pages also expose `.count`, `.per_page`, and `.interpretation`. All additional payload fields are retained in `.extras`. Pages and iterators copy their filters, including nested dictionaries, so later caller mutations do not alter subsequent requests.
+Search and list collection methods return `Page[T]` or `AsyncPage[T]`. A page exposes `.data` as an item array, `.next_cursor`, `.has_next_page()`, and `.get_next_page()`, which returns `None` after the last page. Quotas and request metadata describe that page. Search pages also expose `.count`, `.per_page`, and `.interpretation`; Lists member pages expose `.member_count` and `.pending_intake_count`. All additional payload fields are retained in `.extras`. Pages and iterators copy their filters, including nested dictionaries, so later caller mutations do not alter subsequent requests.
 
 ```python
 with ReverseContact(api_key=os.environ["RC_API_KEY"]) as client:
     page = client.search.people(first_name="Jane", per_page=10)
     if page.has_next_page():
         next_page = page.get_next_page()  # Another potentially billed request
+    for saved_list in client.lists.list_all():
+        if saved_list is not None:
+            print(saved_list.id)
+    for member in client.lists.members.list_all("list-id", max_results=100):
+        if member is not None:
+            print(member.id)
 ```
 
-Search helpers are `iter_people`, `iter_people_by_prompt`, `iter_people_lookalike`, `iter_organizations`, and `iter_organizations_by_prompt`. Each requires `max_results`, reduces `perPage` to the remaining result budget, and stops at a null cursor. `max_results=0` makes no requests. Pagination uses cursors; there are no page numbers. The default page size is 25 and the maximum is 100; larger values raise instead of being clamped. Search budgets must be non-negative integers; `None` is rejected. Repeated cursors raise `ReverseContactError`.
+Search helpers are `iter_people`, `iter_people_by_prompt`, `iter_people_lookalike`, `iter_organizations`, and `iter_organizations_by_prompt`. Each requires `max_results`, reduces `perPage` to the remaining result budget, and stops at a null cursor. `max_results=0` makes no requests. Lists and list members are free collections, so `list_all()` accepts an optional budget. Pagination uses cursors; there are no page numbers. Default page sizes are 25 for search, 200 for Lists, and 100 for list members. Their maximum sizes are 100, 200, and 1000 respectively; larger values raise instead of being clamped. Search budgets must be non-negative integers; `None` is rejected. Repeated cursors raise `ReverseContactError`.
 
 ## Errors and retries
 
@@ -284,17 +295,29 @@ with ReverseContact(api_key=os.environ["RC_API_KEY"]) as client:
 
 The SDK retries ordinary 429s, HTTP 500/502/503/504, and connection failures. It honors server retry hints, otherwise uses exponential backoff of 2, 4, 8, then 15 seconds, plus up to 250 milliseconds of jitter. For 429s, `details.retryAfter` takes precedence over `Retry-After`. If any of `Retry-After`, `details.retryAfter`, or `details.retryAfterSeconds` exceeds 60 seconds, the error is raised immediately, regardless of priority. Daily limits and key credit limits are never retried. The only retryable 409 is `IDEMPOTENCY_KEY_IN_USE` on a contact submit; it honors `Retry-After`. Other 4xx errors are never retried.
 
-Timeouts raise `APITimeoutError`, a subtype of `APIConnectionError`. GET requests and idempotent contact submits can retry timeouts and connection failures after sending. Other POSTs retry only `httpx.ConnectError` or `httpx.ConnectTimeout` when no connection was established. After headers arrive, an unreadable error body retains its HTTP status and normal status retry policy. An unreadable 2xx body raises `APIConnectionError` carrying `.status`, with retries limited to GET and contact submits. Contact submits also retry malformed JSON acknowledgements. `max_retries=0` disables automatic request retries.
+Timeouts raise `APITimeoutError`, a subtype of `APIConnectionError`. GET requests and idempotent contact submits can retry timeouts and connection failures after sending; DELETE requests can too before response headers arrive. Other POSTs retry only `httpx.ConnectError` or `httpx.ConnectTimeout` when no connection was established. After headers arrive, an unreadable error body retains its HTTP status and normal status retry policy. An unreadable 2xx body raises `APIConnectionError` carrying `.status`, with retries limited to GET and contact submits. Contact submits also retry malformed JSON acknowledgements. `max_retries=0` disables automatic request retries. A list creation gets one UUID idempotency key per call unless you supply one; imports similarly get one `operationId`. These identifiers remain unchanged across retries.
 
 The four cached lookup and enrichment methods return `None` for JSON no-match responses with HTTP 404. The codes `NOT_FOUND` and `HTTP_404`, including non-JSON 404s from a proxy or wrong base URL, raise `NotFoundError`. A 404 from any other operation also raises `NotFoundError`.
 
-## Jobs
+## Jobs and imports
 
 Live fetches and contact finders return `Job[T]` or `AsyncJob[T]`. A handle exposes `.id`, `.replayed`, `.status`, `.poll_url`, `.data`, `.quotas`, `.metadata`, and `.http_response`. `retrieve(wait=20)` polls once. `wait(timeout=1800, poll_wait=20, on_poll=callback)` returns `Result[JobSnapshot[T]]`, with the snapshot under `.data` and quotas, metadata, and the raw response alongside it. `retrieve()` and `jobs.wait()` use the same envelope; `on_poll` receives it too.
 
 `wait()` long polls with `wait=20` by default. An early answer waits out the remaining `Retry-After` interval before the next poll starts; an already held poll can continue immediately. A missing header defaults to two seconds for jobs. Poll retries are independent of the creating call: five consecutive retryable failures raise, and a good response resets the counter. The overall deadline caps each poll's HTTP timeout. The query wait is also reduced to the remaining whole seconds. Async polls are cancelled on expiry. Sync polls run directly in the caller's thread, with no background workers; an expired deadline raises `JobTimeoutError` when the HTTP phase finishes or times out. A bounded overshoot of one HTTP phase is possible. The error preserves the job id and last observed status.
 
 `JobFailedError` includes `.job_id`, `.error_code`, `.credits_consumed`, `.result`, and `.not_found`. `JobTimeoutError` includes `.job_id` and `.last_status`; the server job may still finish. Resume with `jobs.wait(saved_id)`. A non-null `delivery_status` on a succeeded job does not make the job fail. An expired result raises `GoneError`. The SDK never recreates a failed job, even for retryable job error codes: a new job can be billed again, so the caller decides.
+
+```python
+with ReverseContact(api_key=os.environ["RC_API_KEY"]) as client:
+    operation = client.lists.import_signals(
+        "list-id", signals=[{"email": "jane@example.com"}], max_credits=10
+    )
+    if operation.data and operation.data.operation_id:
+        final = client.lists.operations.wait("list-id", operation.data.operation_id)
+        print(final.data.client_action if final.data else None)
+```
+
+List operation waiting honors `pollAfterSeconds` or `Retry-After`, falling back to two seconds when both are absent. Its callback receives the complete operation `Result`. It returns the final `Result` when `clientAction` is `done`, `resume`, or `reconcile`. Inspect the operation before deciding what to do next; the SDK never replays a reconciliation request.
 
 ## Webhook deliveries
 

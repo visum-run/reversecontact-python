@@ -18,10 +18,6 @@ def acknowledgement(**kwargs):
     return ok({"webhookId": "job_test", "status": "created"}, **kwargs)
 
 
-async def test_client_has_no_lists_resource(h):
-    assert not hasattr(h.client, "lists")
-
-
 async def test_generated_key_is_reused_per_call_and_fresh_for_next_call(h, submit):
     h.responses.extend(
         [failure(503), httpx.ReadTimeout("after send"), acknowledgement(), acknowledgement()]

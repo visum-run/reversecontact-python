@@ -5,7 +5,7 @@ import pytest
 
 import reversecontact as rc
 from conftest import ok
-from reversecontact.types import EnrichPersonData, Person, PollWebhookData
+from reversecontact.types import EnrichPersonData, GetListOperationData, Person, PollWebhookData
 
 
 async def test_page_and_next_page(h):
@@ -79,6 +79,25 @@ async def test_integers_stay_integers(h):
     assert type(page.data[0].connections_count) is int
 
 
+def test_list_operation_counts_are_integers():
+    # Lists counters and seconds are `integer`; credit amounts stay `number`.
+    operation = GetListOperationData.model_validate(
+        {
+            "progress": {"processed": 3, "total": 10, "remaining": 7},
+            "creditsConsumed": 2.5,
+            "maxCredits": 100,
+            "estimatedSeconds": 40,
+            "pollAfterSeconds": 5,
+        }
+    )
+    assert type(operation.progress.processed) is int
+    assert type(operation.progress.remaining) is int
+    assert type(operation.estimated_seconds) is int
+    assert type(operation.poll_after_seconds) is int
+    assert type(operation.credits_consumed) is float
+    assert type(operation.max_credits) is int
+
+
 @pytest.mark.parametrize(
     "helper",
     [
@@ -114,6 +133,26 @@ async def test_zero_budget_and_required_budget(h):
         h.client.search.iter_people()
     with pytest.raises(rc.ReverseContactError):
         await h.collect(h.client.search.iter_people(max_results=-1))
+
+
+@pytest.mark.parametrize("members", [False, True])
+async def test_free_list_all(h, members):
+    h.responses.extend(
+        [
+            ok({"items": [{"id": "first"}], "nextCursor": "next"}),
+            ok({"items": [{"id": "second"}], "nextCursor": None}),
+        ]
+    )
+    iterator = h.client.lists.members.list_all("list_id") if members else h.client.lists.list_all()
+    items = await h.collect(iterator)
+    assert [item.id for item in items] == ["first", "second"]
+    assert h.requests[-1].url.params["cursor"] == "next"
+
+
+async def test_list_all_optional_budget(h):
+    h.responses.append(ok({"items": [{"id": "one"}], "nextCursor": "next"}))
+    assert len(await h.collect(h.client.lists.list_all(max_results=1))) == 1
+    assert h.requests[0].url.params["perPage"] == "1"
 
 
 async def test_pagination_stops_at_null_and_detects_loop(h):

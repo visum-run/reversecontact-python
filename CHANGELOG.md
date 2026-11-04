@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0 (2026-11-04)
+
+- `lists` manages your saved lists: `list`, `list_all`, `create`, `retrieve`, `delete`, `export` (CSV) and `import_signals`.
+- `lists.members` reads, adds and removes the members of a list: `list`, `list_all`, `add` and `remove`.
+- `lists.operations` follows an import: `retrieve`, `cancel` and `wait`.
+- `bulk.enrich_persons` starts a Bulk enrich job of up to 25,000 people. `bulk.list`, `bulk.list_all`, `bulk.retrieve`, `bulk.wait`, `bulk.results` (CSV) and `bulk.cancel` list, follow, download and stop these jobs.
+
 ## 0.1.8 (2026-11-03)
 
 - `search.people_auto_suggestion` returns the skills that start with what someone has typed, most common first, to build a search box in your own product. Free.
@@ -45,9 +52,9 @@
 - Add standalone repository CI, trusted PyPI publishing, provenance attestations and release notes.
 
 - Add idempotent contact submits with automatic or caller-provided keys, safe retries and replay detection.
-- Add synchronous and asynchronous clients for all 21 production V2 operations.
+- Add synchronous and asynchronous clients for all 32 public V2 operations.
 - Add typed models, errors, bounded retries, job polling, webhook parsing, and cursor pagination.
-- Require explicit search result budgets.
+- Require explicit search result budgets and reuse List replay identifiers across retries.
 - Include examples, offline contract tests, package smoke checks, and an opt-in free-endpoint smoke.
 - Preserve HTTP status on interrupted bodies and limit other POST retries to safe connection failures.
 - Bound polling HTTP timeouts by the overall deadline and return complete job envelopes to callers and callbacks.

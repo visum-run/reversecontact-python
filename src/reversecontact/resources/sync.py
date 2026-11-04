@@ -3,8 +3,15 @@ import builtins
 from collections.abc import Iterator, Mapping
 
 from .. import types as models
-from .._http import NOT_GIVEN, NotGiven, RequestOptions, Timeout, parameters
-from .._jobs import Job, JobsHelpers, parse_contacts
+from .._http import (
+    NOT_GIVEN,
+    NotGiven,
+    RequestOptions,
+    SyncTransport,
+    Timeout,
+    parameters,
+)
+from .._jobs import BulkHelpers, Job, JobsHelpers, OperationsHelpers, parse_contacts
 from .._models import ContactValue, Result
 from .._operations import OPERATIONS
 from .._pagination import Page
@@ -1106,4 +1113,466 @@ class Usage(SyncResource):
             parameters({}, extra),
             RequestOptions(timeout, max_retries, headers),
             (lambda value: None),
+        )
+
+
+class Lists(SyncResource):
+    def __init__(self, transport: SyncTransport) -> None:
+        super().__init__(transport)
+        self.members = Members(transport)
+        self.operations = Operations(transport)
+
+    def list(
+        self,
+        *,
+        per_page: (int | NotGiven | None) = NOT_GIVEN,
+        cursor: (str | NotGiven | None) = NOT_GIVEN,
+        timeout: Timeout | None = None,
+        max_retries: int | None = None,
+        headers: Mapping[str, str] | None = None,
+        **extra: object,
+    ) -> Page[models.ListListsItem]:
+        """Call listLists. Extra arguments pass through."""
+        return self._page(
+            OPERATIONS["listLists"],
+            {},
+            parameters({"perPage": per_page, "cursor": cursor}, extra),
+            RequestOptions(timeout, max_retries, headers),
+            models.ListListsItem.model_validate,
+        )
+
+    def list_all(
+        self,
+        *,
+        per_page: (int | NotGiven | None) = NOT_GIVEN,
+        cursor: (str | NotGiven | None) = NOT_GIVEN,
+        timeout: Timeout | None = None,
+        max_retries: int | None = None,
+        headers: Mapping[str, str] | None = None,
+        max_results: int | None = None,
+        **extra: object,
+    ) -> Iterator[models.ListListsItem | None]:
+        return self._iterate(
+            OPERATIONS["listLists"],
+            {},
+            parameters({"perPage": per_page, "cursor": cursor}, extra),
+            RequestOptions(timeout, max_retries, headers),
+            models.ListListsItem.model_validate,
+            max_results,
+        )
+
+    def create(
+        self,
+        *,
+        name: (str | NotGiven | None) = NOT_GIVEN,
+        entity: (str | NotGiven | None) = NOT_GIVEN,
+        timeout: Timeout | None = None,
+        max_retries: int | None = None,
+        headers: Mapping[str, str] | None = None,
+        idempotency_key: str | None = None,
+        **extra: object,
+    ) -> Result[models.CreateListData]:
+        """Call createList. Extra arguments pass through."""
+        return self._result(
+            OPERATIONS["createList"],
+            {},
+            parameters({"name": name, "entity": entity}, extra),
+            RequestOptions(timeout, max_retries, headers, idempotency_key),
+            models.CreateListData.model_validate,
+        )
+
+    def retrieve(
+        self,
+        list_id: str,
+        *,
+        per_page: (int | NotGiven | None) = NOT_GIVEN,
+        cursor: (str | NotGiven | None) = NOT_GIVEN,
+        kind: (str | NotGiven | None) = NOT_GIVEN,
+        timeout: Timeout | None = None,
+        max_retries: int | None = None,
+        headers: Mapping[str, str] | None = None,
+        **extra: object,
+    ) -> Result[models.GetListData]:
+        """Call getList. Extra arguments pass through."""
+        return self._result(
+            OPERATIONS["getList"],
+            {"listId": list_id},
+            parameters({"perPage": per_page, "cursor": cursor, "kind": kind}, extra),
+            RequestOptions(timeout, max_retries, headers),
+            models.GetListData.model_validate,
+        )
+
+    def delete(
+        self,
+        list_id: str,
+        *,
+        timeout: Timeout | None = None,
+        max_retries: int | None = None,
+        headers: Mapping[str, str] | None = None,
+        **extra: object,
+    ) -> Result[models.DeleteListData]:
+        """Call deleteList. Extra arguments pass through."""
+        return self._result(
+            OPERATIONS["deleteList"],
+            {"listId": list_id},
+            parameters({}, extra),
+            RequestOptions(timeout, max_retries, headers),
+            models.DeleteListData.model_validate,
+        )
+
+    def import_signals(
+        self,
+        list_id: str,
+        *,
+        signals: (
+            builtins.list[models.ImportListSignalsParamsSignalsItem | dict[str, object]]
+            | NotGiven
+            | None
+        ) = NOT_GIVEN,
+        source_url: (str | NotGiven | None) = NOT_GIVEN,
+        live: (bool | NotGiven | None) = NOT_GIVEN,
+        families: (builtins.list[str] | NotGiven | None) = NOT_GIVEN,
+        max_credits: (int | NotGiven | None) = NOT_GIVEN,
+        operation_id: (str | NotGiven | None) = NOT_GIVEN,
+        webhook_url: (str | NotGiven | None) = NOT_GIVEN,
+        timeout: Timeout | None = None,
+        max_retries: int | None = None,
+        headers: Mapping[str, str] | None = None,
+        **extra: object,
+    ) -> Result[models.ImportListSignalsData]:
+        """Call importListSignals. Extra arguments pass through."""
+        return self._result(
+            OPERATIONS["importListSignals"],
+            {"listId": list_id},
+            parameters(
+                {
+                    "signals": signals,
+                    "sourceUrl": source_url,
+                    "live": live,
+                    "families": families,
+                    "maxCredits": max_credits,
+                    "operationId": operation_id,
+                    "webhookUrl": webhook_url,
+                },
+                extra,
+            ),
+            RequestOptions(timeout, max_retries, headers),
+            models.ImportListSignalsData.model_validate,
+        )
+
+    def export(
+        self,
+        list_id: str,
+        *,
+        timeout: Timeout | None = None,
+        max_retries: int | None = None,
+        headers: Mapping[str, str] | None = None,
+        **extra: object,
+    ) -> str:
+        """Call exportList. Extra arguments pass through."""
+        return self._text(
+            OPERATIONS["exportList"],
+            {"listId": list_id},
+            parameters({}, extra),
+            RequestOptions(timeout, max_retries, headers),
+        )
+
+
+class Members(SyncResource):
+    def list(
+        self,
+        list_id: str,
+        *,
+        per_page: (int | NotGiven | None) = NOT_GIVEN,
+        cursor: (str | NotGiven | None) = NOT_GIVEN,
+        kind: (str | NotGiven | None) = NOT_GIVEN,
+        external_id: (str | NotGiven | None) = NOT_GIVEN,
+        timeout: Timeout | None = None,
+        max_retries: int | None = None,
+        headers: Mapping[str, str] | None = None,
+        **extra: object,
+    ) -> Page[models.ListListMembersItem]:
+        """Call listListMembers. Extra arguments pass through."""
+        return self._page(
+            OPERATIONS["listListMembers"],
+            {"listId": list_id},
+            parameters(
+                {"perPage": per_page, "cursor": cursor, "kind": kind, "externalId": external_id},
+                extra,
+            ),
+            RequestOptions(timeout, max_retries, headers),
+            models.ListListMembersItem.model_validate,
+        )
+
+    def list_all(
+        self,
+        list_id: str,
+        *,
+        per_page: (int | NotGiven | None) = NOT_GIVEN,
+        cursor: (str | NotGiven | None) = NOT_GIVEN,
+        kind: (str | NotGiven | None) = NOT_GIVEN,
+        external_id: (str | NotGiven | None) = NOT_GIVEN,
+        timeout: Timeout | None = None,
+        max_retries: int | None = None,
+        headers: Mapping[str, str] | None = None,
+        max_results: int | None = None,
+        **extra: object,
+    ) -> Iterator[models.ListListMembersItem | None]:
+        return self._iterate(
+            OPERATIONS["listListMembers"],
+            {"listId": list_id},
+            parameters(
+                {"perPage": per_page, "cursor": cursor, "kind": kind, "externalId": external_id},
+                extra,
+            ),
+            RequestOptions(timeout, max_retries, headers),
+            models.ListListMembersItem.model_validate,
+            max_results,
+        )
+
+    def add(
+        self,
+        list_id: str,
+        *,
+        signals: (
+            builtins.list[models.AddListMembersParamsSignalsItem | dict[str, object]]
+            | NotGiven
+            | None
+        ) = NOT_GIVEN,
+        source: (str | NotGiven | None) = NOT_GIVEN,
+        live: (bool | NotGiven | None) = NOT_GIVEN,
+        timeout: Timeout | None = None,
+        max_retries: int | None = None,
+        headers: Mapping[str, str] | None = None,
+        **extra: object,
+    ) -> Result[models.AddListMembersData]:
+        """Call addListMembers. Extra arguments pass through."""
+        return self._result(
+            OPERATIONS["addListMembers"],
+            {"listId": list_id},
+            parameters({"signals": signals, "source": source, "live": live}, extra),
+            RequestOptions(timeout, max_retries, headers),
+            models.AddListMembersData.model_validate,
+        )
+
+    def remove(
+        self,
+        list_id: str,
+        *,
+        member_ids: (builtins.list[str] | NotGiven | None) = NOT_GIVEN,
+        pending_ids: (builtins.list[str] | NotGiven | None) = NOT_GIVEN,
+        timeout: Timeout | None = None,
+        max_retries: int | None = None,
+        headers: Mapping[str, str] | None = None,
+        **extra: object,
+    ) -> Result[models.RemoveListMembersData]:
+        """Call removeListMembers. Extra arguments pass through."""
+        return self._result(
+            OPERATIONS["removeListMembers"],
+            {"listId": list_id},
+            parameters({"memberIds": member_ids, "pendingIds": pending_ids}, extra),
+            RequestOptions(timeout, max_retries, headers),
+            models.RemoveListMembersData.model_validate,
+        )
+
+
+class Operations(OperationsHelpers):
+    def retrieve(
+        self,
+        list_id: str,
+        operation_id: str,
+        *,
+        wait: (int | NotGiven | None) = NOT_GIVEN,
+        rows: (str | NotGiven | None) = NOT_GIVEN,
+        cursor: (str | NotGiven | None) = NOT_GIVEN,
+        per_page: (int | NotGiven | None) = NOT_GIVEN,
+        timeout: Timeout | None = None,
+        max_retries: int | None = None,
+        headers: Mapping[str, str] | None = None,
+        **extra: object,
+    ) -> Result[models.GetListOperationData]:
+        """Call getListOperation. Extra arguments pass through."""
+        return self._result(
+            OPERATIONS["getListOperation"],
+            {"listId": list_id, "operationId": operation_id},
+            parameters({"wait": wait, "rows": rows, "cursor": cursor, "perPage": per_page}, extra),
+            RequestOptions(timeout, max_retries, headers),
+            models.GetListOperationData.model_validate,
+        )
+
+    def cancel(
+        self,
+        list_id: str,
+        operation_id: str,
+        *,
+        timeout: Timeout | None = None,
+        max_retries: int | None = None,
+        headers: Mapping[str, str] | None = None,
+        **extra: object,
+    ) -> Result[models.CancelListOperationData]:
+        """Call cancelListOperation. Extra arguments pass through."""
+        return self._result(
+            OPERATIONS["cancelListOperation"],
+            {"listId": list_id, "operationId": operation_id},
+            parameters({}, extra),
+            RequestOptions(timeout, max_retries, headers),
+            models.CancelListOperationData.model_validate,
+        )
+
+
+class Bulk(BulkHelpers):
+    def enrich_persons(
+        self,
+        *,
+        items: (
+            builtins.list[models.BulkEnrichPersonsParamsItemsItem | dict[str, object]]
+            | NotGiven
+            | None
+        ) = NOT_GIVEN,
+        families: (builtins.list[str] | NotGiven | None) = NOT_GIVEN,
+        email_type: (str | NotGiven | None) = NOT_GIVEN,
+        live: (bool | NotGiven | None) = NOT_GIVEN,
+        name: (str | NotGiven | None) = NOT_GIVEN,
+        webhook_url: (str | NotGiven | None) = NOT_GIVEN,
+        timeout: Timeout | None = None,
+        max_retries: int | None = None,
+        headers: Mapping[str, str] | None = None,
+        idempotency_key: str | None = None,
+        **extra: object,
+    ) -> Result[models.BulkEnrichPersonsData]:
+        """Call bulkEnrichPersons. Extra arguments pass through."""
+        return self._result(
+            OPERATIONS["bulkEnrichPersons"],
+            {},
+            parameters(
+                {
+                    "items": items,
+                    "families": families,
+                    "emailType": email_type,
+                    "live": live,
+                    "name": name,
+                    "webhookUrl": webhook_url,
+                },
+                extra,
+            ),
+            RequestOptions(timeout, max_retries, headers, idempotency_key),
+            models.BulkEnrichPersonsData.model_validate,
+        )
+
+    def list(
+        self,
+        *,
+        type: (str | NotGiven | None) = NOT_GIVEN,
+        status: (str | NotGiven | None) = NOT_GIVEN,
+        list_id: (str | NotGiven | None) = NOT_GIVEN,
+        per_page: (int | NotGiven | None) = NOT_GIVEN,
+        cursor: (str | NotGiven | None) = NOT_GIVEN,
+        timeout: Timeout | None = None,
+        max_retries: int | None = None,
+        headers: Mapping[str, str] | None = None,
+        **extra: object,
+    ) -> Page[models.ListJobsItem]:
+        """Call listJobs. Extra arguments pass through."""
+        return self._page(
+            OPERATIONS["listJobs"],
+            {},
+            parameters(
+                {
+                    "type": type,
+                    "status": status,
+                    "listId": list_id,
+                    "perPage": per_page,
+                    "cursor": cursor,
+                },
+                extra,
+            ),
+            RequestOptions(timeout, max_retries, headers),
+            models.ListJobsItem.model_validate,
+        )
+
+    def list_all(
+        self,
+        *,
+        type: (str | NotGiven | None) = NOT_GIVEN,
+        status: (str | NotGiven | None) = NOT_GIVEN,
+        list_id: (str | NotGiven | None) = NOT_GIVEN,
+        per_page: (int | NotGiven | None) = NOT_GIVEN,
+        cursor: (str | NotGiven | None) = NOT_GIVEN,
+        timeout: Timeout | None = None,
+        max_retries: int | None = None,
+        headers: Mapping[str, str] | None = None,
+        max_results: int | None = None,
+        **extra: object,
+    ) -> Iterator[models.ListJobsItem | None]:
+        return self._iterate(
+            OPERATIONS["listJobs"],
+            {},
+            parameters(
+                {
+                    "type": type,
+                    "status": status,
+                    "listId": list_id,
+                    "perPage": per_page,
+                    "cursor": cursor,
+                },
+                extra,
+            ),
+            RequestOptions(timeout, max_retries, headers),
+            models.ListJobsItem.model_validate,
+            max_results,
+        )
+
+    def retrieve(
+        self,
+        job_id: str,
+        *,
+        wait: (int | NotGiven | None) = NOT_GIVEN,
+        timeout: Timeout | None = None,
+        max_retries: int | None = None,
+        headers: Mapping[str, str] | None = None,
+        **extra: object,
+    ) -> Result[models.GetJobData]:
+        """Call getJob. Extra arguments pass through."""
+        return self._result(
+            OPERATIONS["getJob"],
+            {"jobId": job_id},
+            parameters({"wait": wait}, extra),
+            RequestOptions(timeout, max_retries, headers),
+            models.GetJobData.model_validate,
+        )
+
+    def results(
+        self,
+        job_id: str,
+        *,
+        format: (str | NotGiven | None) = NOT_GIVEN,
+        timeout: Timeout | None = None,
+        max_retries: int | None = None,
+        headers: Mapping[str, str] | None = None,
+        **extra: object,
+    ) -> str:
+        """Call getJobResults. Extra arguments pass through."""
+        return self._text(
+            OPERATIONS["getJobResults"],
+            {"jobId": job_id},
+            parameters({"format": format}, extra),
+            RequestOptions(timeout, max_retries, headers),
+        )
+
+    def cancel(
+        self,
+        job_id: str,
+        *,
+        timeout: Timeout | None = None,
+        max_retries: int | None = None,
+        headers: Mapping[str, str] | None = None,
+        **extra: object,
+    ) -> Result[models.CancelJobData]:
+        """Call cancelJob. Extra arguments pass through."""
+        return self._result(
+            OPERATIONS["cancelJob"],
+            {"jobId": job_id},
+            parameters({}, extra),
+            RequestOptions(timeout, max_retries, headers),
+            models.CancelJobData.model_validate,
         )

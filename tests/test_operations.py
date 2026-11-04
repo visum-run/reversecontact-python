@@ -3,6 +3,7 @@ import re
 from pathlib import Path
 from urllib.parse import quote
 
+import httpx
 import pytest
 
 from conftest import ok
@@ -70,7 +71,7 @@ def get_method(client, path):
 
 def test_manifest_matches_snapshot():
     assert set(MAPPING) == set(OPERATIONS)
-    assert len(MAPPING) == 23
+    assert len(MAPPING) == 39
 
 
 @pytest.mark.parametrize("operation_id", MAPPING)
@@ -100,6 +101,10 @@ async def test_every_operation_wire_contract(h, operation_id, camel_case):
     kwargs = expected if camel_case else snake_keys(expected)
     if entry["kind"] == "job":
         h.responses.append(ok({"webhookId": "job_test", "status": "created"}))
+    elif entry["kind"] == "text":
+        h.responses.append(
+            httpx.Response(200, text="id,name\n1,Jane\n", headers={"content-type": "text/csv"})
+        )
     else:
         h.responses.append(ok(None if operation_id == "getUsage" else {}))
     await h.call(fn, *arguments, **kwargs)

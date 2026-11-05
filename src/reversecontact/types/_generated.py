@@ -428,7 +428,7 @@ class EnrichPersonData(Model):
     is_full_profile: bool | None = Field(None, alias="isFullProfile")
 
 
-class JobResultLine(Model):
+class TaskResultLine(Model):
     row: int | None = Field(None, alias="row")
     input: dict[str, object] | None = Field(None, alias="input")
     status: str | None = Field(None, alias="status")
@@ -437,17 +437,17 @@ class JobResultLine(Model):
     person: EnrichedPersonFull | EnrichedPersonLight | None = Field(None, alias="person")
     is_full_profile: bool | None = Field(None, alias="isFullProfile")
     linkedin_url: str | None = Field(None, alias="linkedinUrl")
-    contact_email: JobResultLineContactEmail | None = Field(None, alias="contactEmail")
-    contact_phone: JobResultLineContactPhone | None = Field(None, alias="contactPhone")
+    contact_email: TaskResultLineContactEmail | None = Field(None, alias="contactEmail")
+    contact_phone: TaskResultLineContactPhone | None = Field(None, alias="contactPhone")
 
 
-class JobResultLineContactEmail(Model):
+class TaskResultLineContactEmail(Model):
     status: str | None = Field(None, alias="status")
     value: str | None = Field(None, alias="value")
     personal_value: str | None = Field(None, alias="personalValue")
 
 
-class JobResultLineContactPhone(Model):
+class TaskResultLineContactPhone(Model):
     status: str | None = Field(None, alias="status")
     value: str | None = Field(None, alias="value")
     type: str | None = Field(None, alias="type")
@@ -744,7 +744,7 @@ class CheckCompanyData(Model):
     speciality_count: int | None = Field(None, alias="specialityCount")
 
 
-class JobAckData(Model):
+class TaskAckData(Model):
     status: str | None = Field(None, alias="status")
     webhook_id: str | None = Field(None, alias="webhookId")
     poll_url: str | None = Field(None, alias="pollUrl")
@@ -1546,7 +1546,7 @@ class ImportListSignalsData(Model):
     poll_url: str | None = Field(None, alias="pollUrl")
     total_rows: int | None = Field(None, alias="totalRows")
     duplicate_count: int | None = Field(None, alias="duplicateCount")
-    job: dict[str, object] | None = Field(None, alias="job")
+    task: dict[str, object] | None = Field(None, alias="task")
 
 
 class ImportListSignalsParamsSignalsItem(Model):
@@ -1665,31 +1665,31 @@ class CancelListOperationDataRowsItemsItem(Model):
 
 
 class BulkEnrichPersonsData(Model):
-    job: BulkEnrichPersonsDataJob | None = Field(None, alias="job")
+    task: BulkEnrichPersonsDataTask | None = Field(None, alias="task")
     duplicate_count: int | None = Field(None, alias="duplicateCount")
     credits_estimated: int | None = Field(None, alias="creditsEstimated")
     not_run_for_credits: int | None = Field(None, alias="notRunForCredits")
 
 
-class BulkEnrichPersonsDataJob(Model):
+class BulkEnrichPersonsDataTask(Model):
     id: str | None = Field(None, alias="id")
     type: str | None = Field(None, alias="type")
     entity: str | None = Field(None, alias="entity")
     status: str | None = Field(None, alias="status")
     source: str | None = Field(None, alias="source")
-    name: str | None = Field(None, alias="name")
+    task_name: str | None = Field(None, alias="taskName")
     list_id: str | None = Field(None, alias="listId")
-    progress: BulkEnrichPersonsDataJobProgress | None = Field(None, alias="progress")
-    credits: BulkEnrichPersonsDataJobCredits | None = Field(None, alias="credits")
+    progress: BulkEnrichPersonsDataTaskProgress | None = Field(None, alias="progress")
+    credits: BulkEnrichPersonsDataTaskCredits | None = Field(None, alias="credits")
     estimated_seconds_remaining: int | None = Field(None, alias="estimatedSecondsRemaining")
-    error: BulkEnrichPersonsDataJobError | None = Field(None, alias="error")
+    error: BulkEnrichPersonsDataTaskError | None = Field(None, alias="error")
     created_at: str | None = Field(None, alias="createdAt")
     started_at: str | None = Field(None, alias="startedAt")
     completed_at: str | None = Field(None, alias="completedAt")
-    links: BulkEnrichPersonsDataJobLinks | None = Field(None, alias="links")
+    links: BulkEnrichPersonsDataTaskLinks | None = Field(None, alias="links")
 
 
-class BulkEnrichPersonsDataJobProgress(Model):
+class BulkEnrichPersonsDataTaskProgress(Model):
     total: int | None = Field(None, alias="total")
     processed: int | None = Field(None, alias="processed")
     succeeded: int | None = Field(None, alias="succeeded")
@@ -1698,16 +1698,16 @@ class BulkEnrichPersonsDataJobProgress(Model):
     remaining: int | None = Field(None, alias="remaining")
 
 
-class BulkEnrichPersonsDataJobCredits(Model):
+class BulkEnrichPersonsDataTaskCredits(Model):
     estimated: int | None = Field(None, alias="estimated")
     used: int | None = Field(None, alias="used")
 
 
-class BulkEnrichPersonsDataJobError(Model):
+class BulkEnrichPersonsDataTaskError(Model):
     code: str | None = Field(None, alias="code")
 
 
-class BulkEnrichPersonsDataJobLinks(Model):
+class BulkEnrichPersonsDataTaskLinks(Model):
     self: str | None = Field(None, alias="self")
     results: str | None = Field(None, alias="results")
     operation: str | None = Field(None, alias="operation")
@@ -1723,30 +1723,30 @@ class BulkEnrichPersonsParamsItemsItem(Model):
     external_id: str | None = Field(None, alias="externalId")
 
 
-class ListJobsData(Model):
-    items: builtins.list[ListJobsDataItemsItem | None] | None = Field(None, alias="items")
+class ListTasksData(Model):
+    items: builtins.list[ListTasksDataItemsItem | None] | None = Field(None, alias="items")
     next_cursor: str | None = Field(None, alias="nextCursor")
 
 
-class ListJobsDataItemsItem(Model):
+class ListTasksDataItemsItem(Model):
     id: str | None = Field(None, alias="id")
     type: str | None = Field(None, alias="type")
     entity: str | None = Field(None, alias="entity")
     status: str | None = Field(None, alias="status")
     source: str | None = Field(None, alias="source")
-    name: str | None = Field(None, alias="name")
+    task_name: str | None = Field(None, alias="taskName")
     list_id: str | None = Field(None, alias="listId")
-    progress: ListJobsDataItemsItemProgress | None = Field(None, alias="progress")
-    credits: ListJobsDataItemsItemCredits | None = Field(None, alias="credits")
+    progress: ListTasksDataItemsItemProgress | None = Field(None, alias="progress")
+    credits: ListTasksDataItemsItemCredits | None = Field(None, alias="credits")
     estimated_seconds_remaining: int | None = Field(None, alias="estimatedSecondsRemaining")
-    error: ListJobsDataItemsItemError | None = Field(None, alias="error")
+    error: ListTasksDataItemsItemError | None = Field(None, alias="error")
     created_at: str | None = Field(None, alias="createdAt")
     started_at: str | None = Field(None, alias="startedAt")
     completed_at: str | None = Field(None, alias="completedAt")
-    links: ListJobsDataItemsItemLinks | None = Field(None, alias="links")
+    links: ListTasksDataItemsItemLinks | None = Field(None, alias="links")
 
 
-class ListJobsDataItemsItemProgress(Model):
+class ListTasksDataItemsItemProgress(Model):
     total: int | None = Field(None, alias="total")
     processed: int | None = Field(None, alias="processed")
     succeeded: int | None = Field(None, alias="succeeded")
@@ -1755,40 +1755,40 @@ class ListJobsDataItemsItemProgress(Model):
     remaining: int | None = Field(None, alias="remaining")
 
 
-class ListJobsDataItemsItemCredits(Model):
+class ListTasksDataItemsItemCredits(Model):
     estimated: int | None = Field(None, alias="estimated")
     used: int | None = Field(None, alias="used")
 
 
-class ListJobsDataItemsItemError(Model):
+class ListTasksDataItemsItemError(Model):
     code: str | None = Field(None, alias="code")
 
 
-class ListJobsDataItemsItemLinks(Model):
+class ListTasksDataItemsItemLinks(Model):
     self: str | None = Field(None, alias="self")
     results: str | None = Field(None, alias="results")
     operation: str | None = Field(None, alias="operation")
 
 
-class ListJobsItem(Model):
+class ListTasksItem(Model):
     id: str | None = Field(None, alias="id")
     type: str | None = Field(None, alias="type")
     entity: str | None = Field(None, alias="entity")
     status: str | None = Field(None, alias="status")
     source: str | None = Field(None, alias="source")
-    name: str | None = Field(None, alias="name")
+    task_name: str | None = Field(None, alias="taskName")
     list_id: str | None = Field(None, alias="listId")
-    progress: ListJobsItemProgress | None = Field(None, alias="progress")
-    credits: ListJobsItemCredits | None = Field(None, alias="credits")
+    progress: ListTasksItemProgress | None = Field(None, alias="progress")
+    credits: ListTasksItemCredits | None = Field(None, alias="credits")
     estimated_seconds_remaining: int | None = Field(None, alias="estimatedSecondsRemaining")
-    error: ListJobsItemError | None = Field(None, alias="error")
+    error: ListTasksItemError | None = Field(None, alias="error")
     created_at: str | None = Field(None, alias="createdAt")
     started_at: str | None = Field(None, alias="startedAt")
     completed_at: str | None = Field(None, alias="completedAt")
-    links: ListJobsItemLinks | None = Field(None, alias="links")
+    links: ListTasksItemLinks | None = Field(None, alias="links")
 
 
-class ListJobsItemProgress(Model):
+class ListTasksItemProgress(Model):
     total: int | None = Field(None, alias="total")
     processed: int | None = Field(None, alias="processed")
     succeeded: int | None = Field(None, alias="succeeded")
@@ -1797,40 +1797,40 @@ class ListJobsItemProgress(Model):
     remaining: int | None = Field(None, alias="remaining")
 
 
-class ListJobsItemCredits(Model):
+class ListTasksItemCredits(Model):
     estimated: int | None = Field(None, alias="estimated")
     used: int | None = Field(None, alias="used")
 
 
-class ListJobsItemError(Model):
+class ListTasksItemError(Model):
     code: str | None = Field(None, alias="code")
 
 
-class ListJobsItemLinks(Model):
+class ListTasksItemLinks(Model):
     self: str | None = Field(None, alias="self")
     results: str | None = Field(None, alias="results")
     operation: str | None = Field(None, alias="operation")
 
 
-class GetJobData(Model):
+class GetTaskData(Model):
     id: str | None = Field(None, alias="id")
     type: str | None = Field(None, alias="type")
     entity: str | None = Field(None, alias="entity")
     status: str | None = Field(None, alias="status")
     source: str | None = Field(None, alias="source")
-    name: str | None = Field(None, alias="name")
+    task_name: str | None = Field(None, alias="taskName")
     list_id: str | None = Field(None, alias="listId")
-    progress: GetJobDataProgress | None = Field(None, alias="progress")
-    credits: GetJobDataCredits | None = Field(None, alias="credits")
+    progress: GetTaskDataProgress | None = Field(None, alias="progress")
+    credits: GetTaskDataCredits | None = Field(None, alias="credits")
     estimated_seconds_remaining: int | None = Field(None, alias="estimatedSecondsRemaining")
-    error: GetJobDataError | None = Field(None, alias="error")
+    error: GetTaskDataError | None = Field(None, alias="error")
     created_at: str | None = Field(None, alias="createdAt")
     started_at: str | None = Field(None, alias="startedAt")
     completed_at: str | None = Field(None, alias="completedAt")
-    links: GetJobDataLinks | None = Field(None, alias="links")
+    links: GetTaskDataLinks | None = Field(None, alias="links")
 
 
-class GetJobDataProgress(Model):
+class GetTaskDataProgress(Model):
     total: int | None = Field(None, alias="total")
     processed: int | None = Field(None, alias="processed")
     succeeded: int | None = Field(None, alias="succeeded")
@@ -1839,46 +1839,46 @@ class GetJobDataProgress(Model):
     remaining: int | None = Field(None, alias="remaining")
 
 
-class GetJobDataCredits(Model):
+class GetTaskDataCredits(Model):
     estimated: int | None = Field(None, alias="estimated")
     used: int | None = Field(None, alias="used")
 
 
-class GetJobDataError(Model):
+class GetTaskDataError(Model):
     code: str | None = Field(None, alias="code")
 
 
-class GetJobDataLinks(Model):
+class GetTaskDataLinks(Model):
     self: str | None = Field(None, alias="self")
     results: str | None = Field(None, alias="results")
     operation: str | None = Field(None, alias="operation")
 
 
-class GetJobRowsData(Model):
-    items: builtins.list[JobResultLine | None] | None = Field(None, alias="items")
+class GetTaskRowsData(Model):
+    items: builtins.list[TaskResultLine | None] | None = Field(None, alias="items")
     next_cursor: str | None = Field(None, alias="nextCursor")
     status: str | None = Field(None, alias="status")
 
 
-class CancelJobData(Model):
+class CancelTaskData(Model):
     id: str | None = Field(None, alias="id")
     type: str | None = Field(None, alias="type")
     entity: str | None = Field(None, alias="entity")
     status: str | None = Field(None, alias="status")
     source: str | None = Field(None, alias="source")
-    name: str | None = Field(None, alias="name")
+    task_name: str | None = Field(None, alias="taskName")
     list_id: str | None = Field(None, alias="listId")
-    progress: CancelJobDataProgress | None = Field(None, alias="progress")
-    credits: CancelJobDataCredits | None = Field(None, alias="credits")
+    progress: CancelTaskDataProgress | None = Field(None, alias="progress")
+    credits: CancelTaskDataCredits | None = Field(None, alias="credits")
     estimated_seconds_remaining: int | None = Field(None, alias="estimatedSecondsRemaining")
-    error: CancelJobDataError | None = Field(None, alias="error")
+    error: CancelTaskDataError | None = Field(None, alias="error")
     created_at: str | None = Field(None, alias="createdAt")
     started_at: str | None = Field(None, alias="startedAt")
     completed_at: str | None = Field(None, alias="completedAt")
-    links: CancelJobDataLinks | None = Field(None, alias="links")
+    links: CancelTaskDataLinks | None = Field(None, alias="links")
 
 
-class CancelJobDataProgress(Model):
+class CancelTaskDataProgress(Model):
     total: int | None = Field(None, alias="total")
     processed: int | None = Field(None, alias="processed")
     succeeded: int | None = Field(None, alias="succeeded")
@@ -1887,16 +1887,16 @@ class CancelJobDataProgress(Model):
     remaining: int | None = Field(None, alias="remaining")
 
 
-class CancelJobDataCredits(Model):
+class CancelTaskDataCredits(Model):
     estimated: int | None = Field(None, alias="estimated")
     used: int | None = Field(None, alias="used")
 
 
-class CancelJobDataError(Model):
+class CancelTaskDataError(Model):
     code: str | None = Field(None, alias="code")
 
 
-class CancelJobDataLinks(Model):
+class CancelTaskDataLinks(Model):
     self: str | None = Field(None, alias="self")
     results: str | None = Field(None, alias="results")
     operation: str | None = Field(None, alias="operation")
@@ -1941,9 +1941,9 @@ EnrichedCompanyFullFoundedOn.model_rebuild()
 EnrichedCompanyFullLocationsItem.model_rebuild()
 EnrichedCompanyFullLocation.model_rebuild()
 EnrichPersonData.model_rebuild()
-JobResultLine.model_rebuild()
-JobResultLineContactEmail.model_rebuild()
-JobResultLineContactPhone.model_rebuild()
+TaskResultLine.model_rebuild()
+TaskResultLineContactEmail.model_rebuild()
+TaskResultLineContactPhone.model_rebuild()
 EnrichCompanyData.model_rebuild()
 SearchPeopleData.model_rebuild()
 SearchPeopleDataMetadata.model_rebuild()
@@ -1973,7 +1973,7 @@ SearchPeopleAutoSuggestionData.model_rebuild()
 SearchPeopleAutoSuggestionDataSuggestionsItem.model_rebuild()
 CheckPersonData.model_rebuild()
 CheckCompanyData.model_rebuild()
-JobAckData.model_rebuild()
+TaskAckData.model_rebuild()
 ContactEmailAckData.model_rebuild()
 ContactEmailVerifyAckData.model_rebuild()
 ContactEmailVerifyResult.model_rebuild()
@@ -2064,31 +2064,31 @@ CancelListOperationDataProgress.model_rebuild()
 CancelListOperationDataRows.model_rebuild()
 CancelListOperationDataRowsItemsItem.model_rebuild()
 BulkEnrichPersonsData.model_rebuild()
-BulkEnrichPersonsDataJob.model_rebuild()
-BulkEnrichPersonsDataJobProgress.model_rebuild()
-BulkEnrichPersonsDataJobCredits.model_rebuild()
-BulkEnrichPersonsDataJobError.model_rebuild()
-BulkEnrichPersonsDataJobLinks.model_rebuild()
+BulkEnrichPersonsDataTask.model_rebuild()
+BulkEnrichPersonsDataTaskProgress.model_rebuild()
+BulkEnrichPersonsDataTaskCredits.model_rebuild()
+BulkEnrichPersonsDataTaskError.model_rebuild()
+BulkEnrichPersonsDataTaskLinks.model_rebuild()
 BulkEnrichPersonsParamsItemsItem.model_rebuild()
-ListJobsData.model_rebuild()
-ListJobsDataItemsItem.model_rebuild()
-ListJobsDataItemsItemProgress.model_rebuild()
-ListJobsDataItemsItemCredits.model_rebuild()
-ListJobsDataItemsItemError.model_rebuild()
-ListJobsDataItemsItemLinks.model_rebuild()
-ListJobsItem.model_rebuild()
-ListJobsItemProgress.model_rebuild()
-ListJobsItemCredits.model_rebuild()
-ListJobsItemError.model_rebuild()
-ListJobsItemLinks.model_rebuild()
-GetJobData.model_rebuild()
-GetJobDataProgress.model_rebuild()
-GetJobDataCredits.model_rebuild()
-GetJobDataError.model_rebuild()
-GetJobDataLinks.model_rebuild()
-GetJobRowsData.model_rebuild()
-CancelJobData.model_rebuild()
-CancelJobDataProgress.model_rebuild()
-CancelJobDataCredits.model_rebuild()
-CancelJobDataError.model_rebuild()
-CancelJobDataLinks.model_rebuild()
+ListTasksData.model_rebuild()
+ListTasksDataItemsItem.model_rebuild()
+ListTasksDataItemsItemProgress.model_rebuild()
+ListTasksDataItemsItemCredits.model_rebuild()
+ListTasksDataItemsItemError.model_rebuild()
+ListTasksDataItemsItemLinks.model_rebuild()
+ListTasksItem.model_rebuild()
+ListTasksItemProgress.model_rebuild()
+ListTasksItemCredits.model_rebuild()
+ListTasksItemError.model_rebuild()
+ListTasksItemLinks.model_rebuild()
+GetTaskData.model_rebuild()
+GetTaskDataProgress.model_rebuild()
+GetTaskDataCredits.model_rebuild()
+GetTaskDataError.model_rebuild()
+GetTaskDataLinks.model_rebuild()
+GetTaskRowsData.model_rebuild()
+CancelTaskData.model_rebuild()
+CancelTaskDataProgress.model_rebuild()
+CancelTaskDataCredits.model_rebuild()
+CancelTaskDataError.model_rebuild()
+CancelTaskDataLinks.model_rebuild()

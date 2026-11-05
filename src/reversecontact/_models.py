@@ -75,7 +75,7 @@ class ContactValue(Model):
     type: str | None = None
 
 
-class JobSnapshot(Model, Generic[T]):
+class TaskSnapshot(Model, Generic[T]):
     webhook_id: str | None = Field(None, alias="webhookId")
     status: str | None = None
     result: T | None = None
@@ -84,6 +84,10 @@ class JobSnapshot(Model, Generic[T]):
     credits_consumed: int | float | None = Field(None, alias="creditsConsumed")
     delivery_status: str | None = Field(None, alias="deliveryStatus")
     created_at: str | None = Field(None, alias="createdAt")
+
+
+JobSnapshot = TaskSnapshot
+"""Deprecated: the former name of `TaskSnapshot`, the same class."""
 
 
 class AppInfo(Model):

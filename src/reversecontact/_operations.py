@@ -221,7 +221,7 @@ ALIASES: dict[str, str] = {
     "operation_id": "operationId",
     "total_rows": "totalRows",
     "duplicate_count": "duplicateCount",
-    "job": "job",
+    "task": "task",
     "source_url": "sourceUrl",
     "max_credits": "maxCredits",
     "list_id": "listId",
@@ -246,6 +246,7 @@ ALIASES: dict[str, str] = {
     "rows": "rows",
     "row_number": "rowNumber",
     "signal": "signal",
+    "task_name": "taskName",
     "credits": "credits",
     "estimated": "estimated",
     "used": "used",
@@ -625,7 +626,7 @@ OPERATIONS = {
     ),
     "bulkEnrichPersons": Operation(
         method="POST",
-        path="/v2/enrich/persons/bulk",
+        path="/v2/bulk",
         has_body=True,
         lookup=False,
         idempotency=False,
@@ -634,9 +635,9 @@ OPERATIONS = {
         text=False,
         poll=False,
     ),
-    "listJobs": Operation(
+    "listTasks": Operation(
         method="GET",
-        path="/v2/jobs",
+        path="/v2/tasks",
         has_body=False,
         lookup=False,
         idempotency=False,
@@ -645,9 +646,9 @@ OPERATIONS = {
         text=False,
         poll=False,
     ),
-    "getJob": Operation(
+    "getTask": Operation(
         method="GET",
-        path="/v2/jobs/{jobId}",
+        path="/v2/tasks/{taskId}",
         has_body=False,
         lookup=False,
         idempotency=False,
@@ -656,9 +657,9 @@ OPERATIONS = {
         text=False,
         poll=True,
     ),
-    "getJobResults": Operation(
+    "getTaskResults": Operation(
         method="GET",
-        path="/v2/jobs/{jobId}/results",
+        path="/v2/tasks/{taskId}/results",
         has_body=False,
         lookup=False,
         idempotency=False,
@@ -667,9 +668,9 @@ OPERATIONS = {
         text=True,
         poll=False,
     ),
-    "getJobRows": Operation(
+    "getTaskRows": Operation(
         method="GET",
-        path="/v2/jobs/{jobId}/rows",
+        path="/v2/tasks/{taskId}/rows",
         has_body=False,
         lookup=False,
         idempotency=False,
@@ -678,9 +679,9 @@ OPERATIONS = {
         text=False,
         poll=False,
     ),
-    "cancelJob": Operation(
+    "cancelTask": Operation(
         method="POST",
-        path="/v2/jobs/{jobId}/cancel",
+        path="/v2/tasks/{taskId}/cancel",
         has_body=False,
         lookup=False,
         idempotency=False,

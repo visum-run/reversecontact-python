@@ -171,12 +171,19 @@ model_text = model_text.replace("list[", "builtins.list[").replace(
     "from __future__ import annotations", "from __future__ import annotations\nimport builtins"
 )
 (OUT / "types/_generated.py").write_text(model_text)
+# Former model names kept importable after a rename of the API schema.
+DEPRECATED_MODELS = {"JobAckData": "TaskAckData"}
 (OUT / "types/__init__.py").write_text(
     header.replace("from __future__ import annotations\n", "")
     + "\n".join(f"from ._generated import ({name},)" for name in models)
     + "\nfrom ._generated import PersonFull as Person\n"
-    + "from ._generated import CompanyFull as Company\n__all__ = "
-    + repr(sorted([*models, "Person", "Company"]))
+    + "from ._generated import CompanyFull as Company\n"
+    + "".join(
+        f"# Deprecated: the former name of {new}.\nfrom ._generated import {new} as {old}\n"
+        for old, new in DEPRECATED_MODELS.items()
+    )
+    + "__all__ = "
+    + repr(sorted([*models, "Person", "Company", *DEPRECATED_MODELS]))
     + "\n"
 )
 
@@ -196,7 +203,7 @@ for name, op in ops.items():
         "list_idempotency": name in {"createList", "bulkEnrichPersons"},
         "import_operation": name == "importListSignals",
         "text": op["kind"] == "text",
-        "poll": name in {"pollWebhook", "getListOperation", "getJob"},
+        "poll": name in {"pollWebhook", "getListOperation", "getTask"},
     }
     arguments = {"method": op["method"], "path": op["path"], **flags}
     registry += (
@@ -212,7 +219,7 @@ resource_names = [
     "Fetch",
     "Search",
     "Contact",
-    "Jobs",
+    "Tasks",
     "Usage",
     "Lists",
     "Members",
@@ -227,23 +234,23 @@ for asynchronous in (False, True):
         header
         + """from collections.abc import Callable, Iterator, AsyncIterator, Mapping
 from .. import types as models
-from .._models import Result, Model, ContactValue, JobSnapshot
+from .._models import Result, Model, ContactValue, TaskSnapshot
 from .._http import NOT_GIVEN, NotGiven, Timeout, RequestOptions, parameters
 from .._operations import OPERATIONS
 from .._resource import SyncResource, AsyncResource
 from .._pagination import Page, AsyncPage
-from .._jobs import Job, AsyncJob
+from .._jobs import Task, AsyncTask
 """
     )
     for resource in resource_names:
         base = (
             prefix + resource + "Helpers"
-            if resource in {"Jobs", "Operations", "Bulk"}
+            if resource in {"Tasks", "Operations", "Bulk"}
             else prefix + "Resource"
             if asynchronous
             else "SyncResource"
         )
-        if resource in {"Jobs", "Operations", "Bulk"}:
+        if resource in {"Tasks", "Operations", "Bulk"}:
             text += f"from .._jobs import {base}\n"
     for resource in resource_names:
         group = {
@@ -254,7 +261,7 @@ from .._jobs import Job, AsyncJob
         }
         base = (
             prefix + resource + "Helpers"
-            if resource in {"Jobs", "Operations", "Bulk"}
+            if resource in {"Tasks", "Operations", "Bulk"}
             else "AsyncResource"
             if asynchronous
             else "SyncResource"
@@ -300,21 +307,21 @@ from .._jobs import Job, AsyncJob
             if op["kind"] == "page":
                 returned = f"{prefix}Page[models.{op['item']}]"
                 invocation = f"self._page({args}, models.{op['item']}.model_validate)"
-            elif op["kind"] == "job":
-                job_type = {
+            elif op["kind"] == "task":
+                task_type = {
                     "livePerson": "models.PersonFull",
                     "liveCompany": "models.CompanyFull",
                     "findContactEmail": "list[ContactValue | None]",
                     "findContactPhone": "list[ContactValue | None]",
                     "verifyContactEmail": "models.ContactEmailVerifyResult",
                 }[name]
-                job_parser = (
-                    f"{job_type}.model_validate"
-                    if not job_type.startswith("list")
+                task_parser = (
+                    f"{task_type}.model_validate"
+                    if not task_type.startswith("list")
                     else "parse_contacts"
                 )
-                returned = f"{prefix}Job[{job_type}]"
-                invocation = f"self._job({args}, {job_parser})"
+                returned = f"{prefix}Task[{task_type}]"
+                invocation = f"self._task({args}, {task_parser})"
             elif op["kind"] == "text":
                 returned = "str"
                 invocation = f"self._text({args})"
@@ -330,8 +337,8 @@ from .._jobs import Job, AsyncJob
             )
             text += f'        """Call {name}. Extra arguments pass through."""\n'
             text += f"        return {await_}{invocation}\n\n"
-            # The rows of a Bulk job wait for its items to finish: `iter_rows`, by hand in _jobs.py.
-            if op["kind"] == "page" and name != "getJobRows":
+            # The rows of a Bulk task wait for its items: `iter_rows`, by hand in _jobs.py.
+            if op["kind"] == "page" and name != "getTaskRows":
                 helper = "iter_" + method_name if resource == "Search" else "list_all"
                 iter_signatures = [s for s in signatures if not s.startswith("**")]
                 iter_signatures += [
@@ -350,6 +357,10 @@ from .._jobs import Job, AsyncJob
                     f"self._iterate({args}, models.{op['item']}.model_validate, max_results)"
                 )
                 text += f"        return {iteration}\n\n"
+    text += (
+        f"\n\n{prefix}Jobs = {prefix}Tasks\n"
+        f'"""Deprecated: the former name of `{prefix}Tasks`, the same class."""\n'
+    )
     text = text.replace(
         "from .._models import",
         "from .._http import SyncTransport, AsyncTransport\n"

@@ -172,6 +172,16 @@ async def test_import_operation_id_reused(h, provided):
     assert ids[0] == provided if provided else len(ids[0]) == 36
 
 
+async def test_import_answer_carries_the_task(h):
+    h.responses.append(
+        ok({"operationId": "op_test", "task": {"id": "task_test", "kind": "list_import"}})
+    )
+    value = await h.call(
+        h.client.lists.import_signals, "list_test", signals=[{"email": "a@example.com"}]
+    )
+    assert value.data.task == {"id": "task_test", "kind": "list_import"}
+
+
 @pytest.mark.parametrize("status", [400, 401, 402, 403, 404, 409, 410, 422, 451, 501])
 async def test_other_statuses_do_not_retry(h, status):
     h.responses.append(failure(status))

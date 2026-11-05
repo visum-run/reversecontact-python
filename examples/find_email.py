@@ -8,11 +8,11 @@ from reversecontact import AsyncReverseContact
 
 async def main() -> None:
     async with AsyncReverseContact(api_key=os.environ["RC_API_KEY"]) as client:
-        job = await client.contact.find_email(
+        task = await client.contact.find_email(
             first_name="Jane", last_name="Doe", company_domain="example.com"
         )
-        print("Save this job id:", job.id)
-        snapshot = await job.wait()
+        print("Save this task id:", task.id)
+        snapshot = await task.wait()
         for contact in (snapshot.data.result or []) if snapshot.data else []:
             if contact is None:
                 continue

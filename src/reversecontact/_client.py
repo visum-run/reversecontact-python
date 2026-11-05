@@ -49,7 +49,7 @@ class ReverseContact:
         self.fetch = sync.Fetch(self._transport)
         self.search = sync.Search(self._transport)
         self.contact = sync.Contact(self._transport)
-        self.jobs = sync.Jobs(self._transport)
+        self.tasks = sync.Tasks(self._transport)
         self.usage = sync.Usage(self._transport)
         self.lists = sync.Lists(self._transport)
         self.bulk = sync.Bulk(self._transport)
@@ -91,6 +91,11 @@ class ReverseContact:
     @property
     def base_url(self) -> str:
         return self._transport.base_url
+
+    @property
+    def jobs(self) -> sync.Tasks:
+        """Deprecated: use `tasks`, the same object under its former name."""
+        return self.tasks
 
     def close(self) -> None:
         self._transport.close()
@@ -138,7 +143,7 @@ class AsyncReverseContact:
         self.fetch = async_.AsyncFetch(self._transport)
         self.search = async_.AsyncSearch(self._transport)
         self.contact = async_.AsyncContact(self._transport)
-        self.jobs = async_.AsyncJobs(self._transport)
+        self.tasks = async_.AsyncTasks(self._transport)
         self.usage = async_.AsyncUsage(self._transport)
         self.lists = async_.AsyncLists(self._transport)
         self.bulk = async_.AsyncBulk(self._transport)
@@ -180,6 +185,11 @@ class AsyncReverseContact:
     @property
     def base_url(self) -> str:
         return self._transport.base_url
+
+    @property
+    def jobs(self) -> async_.AsyncTasks:
+        """Deprecated: use `tasks`, the same object under its former name."""
+        return self.tasks
 
     async def close(self) -> None:
         await self._transport.close()

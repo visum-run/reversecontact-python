@@ -124,14 +124,14 @@ async def test_server_delay_ceiling(h, status, hint, delay):
         assert h.clock.sleeps == [60]
 
 
-@pytest.mark.parametrize("entry", ["job", "jobs", "lists"])
+@pytest.mark.parametrize("entry", ["task", "tasks", "lists"])
 async def test_overall_deadline_during_inflight_poll(h, entry):
-    if entry == "job":
+    if entry == "task":
         h.responses.append(ok({"webhookId": "job_test"}))
-        job = await h.call(h.client.fetch.person_live, url="https://social.com/in/jane")
-        function, args = job.wait, ()
-    elif entry == "jobs":
-        function, args = h.client.jobs.wait, ("job_test",)
+        task = await h.call(h.client.fetch.person_live, url="https://social.com/in/jane")
+        function, args = task.wait, ()
+    elif entry == "tasks":
+        function, args = h.client.tasks.wait, ("job_test",)
     else:
         function, args = h.client.lists.operations.wait, ("list_test", "op_test")
     h.client._transport.clock = time.monotonic
@@ -155,11 +155,11 @@ async def test_overall_deadline_during_inflight_poll(h, entry):
 
     h.handler = aheld if h.asynchronous else held
     started = time.monotonic()
-    with pytest.raises(rc.JobTimeoutError) as caught:
+    with pytest.raises(rc.TaskTimeoutError) as caught:
         await h.call(function, *args, timeout=0.03)
     elapsed = time.monotonic() - started
     assert 0.015 <= elapsed < 0.3
-    assert caught.value.job_id == ("op_test" if entry == "lists" else "job_test")
+    assert caught.value.task_id == ("op_test" if entry == "lists" else "job_test")
     request = h.requests[-1]
     assert request.url.params["wait"] == "0"
     assert all(0 < value <= 0.03 for value in request.extensions["timeout"].values())
@@ -167,7 +167,7 @@ async def test_overall_deadline_during_inflight_poll(h, entry):
     assert not h.clock.sleeps
 
 
-@pytest.mark.parametrize("entry", ["jobs", "lists"])
+@pytest.mark.parametrize("entry", ["tasks", "lists"])
 async def test_deadline_caps_http_components_and_preserves_last_status(h, entry):
     h.client._transport.timeout = httpx.Timeout(None, read=4)
     h.responses.append(ok({"status": "running", "clientAction": "poll"}))
@@ -177,9 +177,9 @@ async def test_deadline_caps_http_components_and_preserves_last_status(h, entry)
         raise httpx.ReadTimeout("deadline")
 
     h.responses.append(expired)
-    function = h.client.jobs.wait if entry == "jobs" else h.client.lists.operations.wait
-    args = ("job_test",) if entry == "jobs" else ("list_test", "op_test")
-    with pytest.raises(rc.JobTimeoutError) as caught:
+    function = h.client.tasks.wait if entry == "tasks" else h.client.lists.operations.wait
+    args = ("job_test",) if entry == "tasks" else ("list_test", "op_test")
+    with pytest.raises(rc.TaskTimeoutError) as caught:
         await h.call(function, *args, timeout=3)
     assert caught.value.last_status == "running"
     assert isinstance(caught.value.__context__, rc.APITimeoutError)

@@ -1,6 +1,15 @@
 from ._client import AsyncReverseContact, ReverseContact
-from ._jobs import AsyncJob, Job, WebhookDelivery, parse_webhook_delivery
-from ._models import AppInfo, ContactValue, JobSnapshot, Metadata, Model, Quotas, Result
+from ._jobs import AsyncJob, AsyncTask, Job, Task, WebhookDelivery, parse_webhook_delivery
+from ._models import (
+    AppInfo,
+    ContactValue,
+    JobSnapshot,
+    Metadata,
+    Model,
+    Quotas,
+    Result,
+    TaskSnapshot,
+)
 from ._pagination import AsyncPage, Page
 from ._version import __version__
 from .catalogs import (
@@ -32,6 +41,8 @@ from .errors import (
     PermissionDeniedError,
     RateLimitError,
     ReverseContactError,
+    TaskFailedError,
+    TaskTimeoutError,
     UnavailableForLegalReasonsError,
     UnprocessableEntityError,
 )
@@ -46,6 +57,7 @@ __all__ = [
     "AsyncJob",
     "AsyncPage",
     "AsyncReverseContact",
+    "AsyncTask",
     "AuthenticationError",
     "BadRequestError",
     "Company",
@@ -79,6 +91,10 @@ __all__ = [
     "ReverseContact",
     "ReverseContactError",
     "Seniority",
+    "Task",
+    "TaskFailedError",
+    "TaskSnapshot",
+    "TaskTimeoutError",
     "UnavailableForLegalReasonsError",
     "UnprocessableEntityError",
     "WebhookDelivery",

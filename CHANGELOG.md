@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.4.0 (2026-11-05)
+
+- Breaking: the background jobs of the Bulk API are now called tasks, with no compatibility for the old routes. `client.bulk` keeps every method name (`enrich_persons`, `list`, `list_all`, `retrieve`, `wait`, `results`, `rows`, `iter_rows`, `cancel`); what changes:
+  - `bulk.enrich_persons` posts to `/v2/bulk` (was `/v2/enrich/persons/bulk`) and the other methods call `/v2/tasks`, `/v2/tasks/{taskId}`, `/v2/tasks/{taskId}/results`, `/v2/tasks/{taskId}/rows` and `/v2/tasks/{taskId}/cancel` (were under `/v2/jobs`). `bulk.list_all` keeps its page bounds (50 by default, `per_page` up to 100), now those of `GET /v2/tasks`.
+  - `bulk.enrich_persons` takes `task_name`, sent as `taskName` (was `name`), and its answer holds the task in `data.task` (was `data.job`).
+  - The task object carries `task_name` (`taskName`, was `name`); its `links.self` and `links.results` point to `/v2/tasks/<id>`.
+  - The first argument of `bulk.retrieve`, `bulk.wait`, `bulk.results`, `bulk.rows`, `bulk.iter_rows` and `bulk.cancel` is named `task_id` (was `job_id`).
+  - Renamed types in `reversecontact.types`: `JobResultLine` is `TaskResultLine` (with `TaskResultLineContactEmail` and `TaskResultLineContactPhone`), `GetJobData` is `GetTaskData`, `GetJobRowsData` is `GetTaskRowsData`, `ListJobsData` and `ListJobsItem` are `ListTasksData` and `ListTasksItem`, `CancelJobData` is `CancelTaskData`, `BulkEnrichPersonsDataJob` is `BulkEnrichPersonsDataTask`, and so for their `Credits`, `Error`, `Links` and `Progress` parts.
+  - Error codes say TASK: `TASK_NOT_FOUND`, `TASK_INVALID_INPUT`, `TASK_NOT_CANCELLABLE`, `TASK_RESULTS_NOT_READY`, `TASK_RESULTS_FORMAT_UNAVAILABLE`, `TASK_ROWS_BUSY`, `TASK_STARTED_BY_A_PERSON`, `TASK_MAX_CREDITS`, and `BULK_TASK_*` for the former `BULK_JOB_*` codes (for example `BULK_TASK_INSUFFICIENT_CREDITS`).
+  - The webhook sent when a task created with `webhook_url` settles is the event `task.updated` (was `job.updated`), with `taskId` (was `jobId`); `pollUrl` and `resultsUrl` point to `/v2/tasks/<id>`.
+- The async tasks of live fetches and contact lookups say task too; every former name stays importable as a deprecated alias of the same object or class:
+  - `client.tasks` (sync and async clients) reads and waits for them by id (`retrieve`, `wait`, on `GET /v2/webhooks/{webhookId}`); `client.jobs` returns the same object, kept as a deprecated alias. The first argument of `tasks.wait` is named `task_id` (was `job_id`).
+  - `fetch.person_live`, `fetch.company_live` and the `contact` methods return a `Task` or `AsyncTask` (were `Job` and `AsyncJob`, kept as aliases), whose snapshots are `TaskSnapshot` (`JobSnapshot` kept).
+  - `TaskTimeoutError` and `TaskFailedError` carry `task_id`; `job_id` stays as a read-only alias, and `JobTimeoutError` and `JobFailedError` are the same classes, so `except` and `isinstance` work with either name. The messages say task, and the timeout names the wait to resume with: `tasks.wait`, `bulk.wait` or `lists.operations.wait` (it always said `jobs.wait`).
+  - `reversecontact.types.TaskAckData` is the acknowledgement of a live fetch (was `JobAckData`, kept as an alias).
+- `lists.import_signals` answers with the task record in `data.task` (was `data.job`).
+
 ## 0.3.1 (2026-11-04)
 
 - `bulk.list_all` asks for 50 jobs per page by default and accepts `per_page` up to 100, the bounds of `GET /v2/jobs`: it asked for 200 and the API refused the first page.

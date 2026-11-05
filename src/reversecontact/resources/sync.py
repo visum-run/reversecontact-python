@@ -11,7 +11,7 @@ from .._http import (
     Timeout,
     parameters,
 )
-from .._jobs import BulkHelpers, Job, JobsHelpers, OperationsHelpers, parse_contacts
+from .._jobs import BulkHelpers, OperationsHelpers, Task, TasksHelpers, parse_contacts
 from .._models import ContactValue, Result
 from .._operations import OPERATIONS
 from .._pagination import Page
@@ -102,9 +102,9 @@ class Fetch(SyncResource):
         max_retries: int | None = None,
         headers: Mapping[str, str] | None = None,
         **extra: object,
-    ) -> Job[models.PersonFull]:
+    ) -> Task[models.PersonFull]:
         """Call livePerson. Extra arguments pass through."""
-        return self._job(
+        return self._task(
             OPERATIONS["livePerson"],
             {},
             parameters({"url": url, "id": id, "webhookUrl": webhook_url}, extra),
@@ -160,9 +160,9 @@ class Fetch(SyncResource):
         max_retries: int | None = None,
         headers: Mapping[str, str] | None = None,
         **extra: object,
-    ) -> Job[models.CompanyFull]:
+    ) -> Task[models.CompanyFull]:
         """Call liveCompany. Extra arguments pass through."""
-        return self._job(
+        return self._task(
             OPERATIONS["liveCompany"],
             {},
             parameters({"url": url, "id": id, "webhookUrl": webhook_url}, extra),
@@ -997,9 +997,9 @@ class Contact(SyncResource):
         headers: Mapping[str, str] | None = None,
         idempotency_key: str | None = None,
         **extra: object,
-    ) -> Job[builtins.list[ContactValue | None]]:
+    ) -> Task[builtins.list[ContactValue | None]]:
         """Call findContactEmail. Extra arguments pass through."""
-        return self._job(
+        return self._task(
             OPERATIONS["findContactEmail"],
             {},
             parameters(
@@ -1029,9 +1029,9 @@ class Contact(SyncResource):
         headers: Mapping[str, str] | None = None,
         idempotency_key: str | None = None,
         **extra: object,
-    ) -> Job[models.ContactEmailVerifyResult]:
+    ) -> Task[models.ContactEmailVerifyResult]:
         """Call verifyContactEmail. Extra arguments pass through."""
-        return self._job(
+        return self._task(
             OPERATIONS["verifyContactEmail"],
             {},
             parameters({"email": email, "webhookUrl": webhook_url}, extra),
@@ -1054,9 +1054,9 @@ class Contact(SyncResource):
         headers: Mapping[str, str] | None = None,
         idempotency_key: str | None = None,
         **extra: object,
-    ) -> Job[builtins.list[ContactValue | None]]:
+    ) -> Task[builtins.list[ContactValue | None]]:
         """Call findContactPhone. Extra arguments pass through."""
-        return self._job(
+        return self._task(
             OPERATIONS["findContactPhone"],
             {},
             parameters(
@@ -1076,7 +1076,7 @@ class Contact(SyncResource):
         )
 
 
-class Jobs(JobsHelpers):
+class Tasks(TasksHelpers):
     def retrieve(
         self,
         webhook_id: str,
@@ -1432,7 +1432,7 @@ class Bulk(BulkHelpers):
         families: (builtins.list[str] | NotGiven | None) = NOT_GIVEN,
         email_type: (str | NotGiven | None) = NOT_GIVEN,
         live: (bool | NotGiven | None) = NOT_GIVEN,
-        name: (str | NotGiven | None) = NOT_GIVEN,
+        task_name: (str | NotGiven | None) = NOT_GIVEN,
         webhook_url: (str | NotGiven | None) = NOT_GIVEN,
         timeout: Timeout | None = None,
         max_retries: int | None = None,
@@ -1450,7 +1450,7 @@ class Bulk(BulkHelpers):
                     "families": families,
                     "emailType": email_type,
                     "live": live,
-                    "name": name,
+                    "taskName": task_name,
                     "webhookUrl": webhook_url,
                 },
                 extra,
@@ -1471,10 +1471,10 @@ class Bulk(BulkHelpers):
         max_retries: int | None = None,
         headers: Mapping[str, str] | None = None,
         **extra: object,
-    ) -> Page[models.ListJobsItem]:
-        """Call listJobs. Extra arguments pass through."""
+    ) -> Page[models.ListTasksItem]:
+        """Call listTasks. Extra arguments pass through."""
         return self._page(
-            OPERATIONS["listJobs"],
+            OPERATIONS["listTasks"],
             {},
             parameters(
                 {
@@ -1487,7 +1487,7 @@ class Bulk(BulkHelpers):
                 extra,
             ),
             RequestOptions(timeout, max_retries, headers),
-            models.ListJobsItem.model_validate,
+            models.ListTasksItem.model_validate,
         )
 
     def list_all(
@@ -1503,9 +1503,9 @@ class Bulk(BulkHelpers):
         headers: Mapping[str, str] | None = None,
         max_results: int | None = None,
         **extra: object,
-    ) -> Iterator[models.ListJobsItem | None]:
+    ) -> Iterator[models.ListTasksItem | None]:
         return self._iterate(
-            OPERATIONS["listJobs"],
+            OPERATIONS["listTasks"],
             {},
             parameters(
                 {
@@ -1518,32 +1518,32 @@ class Bulk(BulkHelpers):
                 extra,
             ),
             RequestOptions(timeout, max_retries, headers),
-            models.ListJobsItem.model_validate,
+            models.ListTasksItem.model_validate,
             max_results,
         )
 
     def retrieve(
         self,
-        job_id: str,
+        task_id: str,
         *,
         wait: (int | NotGiven | None) = NOT_GIVEN,
         timeout: Timeout | None = None,
         max_retries: int | None = None,
         headers: Mapping[str, str] | None = None,
         **extra: object,
-    ) -> Result[models.GetJobData]:
-        """Call getJob. Extra arguments pass through."""
+    ) -> Result[models.GetTaskData]:
+        """Call getTask. Extra arguments pass through."""
         return self._result(
-            OPERATIONS["getJob"],
-            {"jobId": job_id},
+            OPERATIONS["getTask"],
+            {"taskId": task_id},
             parameters({"wait": wait}, extra),
             RequestOptions(timeout, max_retries, headers),
-            models.GetJobData.model_validate,
+            models.GetTaskData.model_validate,
         )
 
     def results(
         self,
-        job_id: str,
+        task_id: str,
         *,
         format: (str | NotGiven | None) = NOT_GIVEN,
         timeout: Timeout | None = None,
@@ -1551,17 +1551,17 @@ class Bulk(BulkHelpers):
         headers: Mapping[str, str] | None = None,
         **extra: object,
     ) -> str:
-        """Call getJobResults. Extra arguments pass through."""
+        """Call getTaskResults. Extra arguments pass through."""
         return self._text(
-            OPERATIONS["getJobResults"],
-            {"jobId": job_id},
+            OPERATIONS["getTaskResults"],
+            {"taskId": task_id},
             parameters({"format": format}, extra),
             RequestOptions(timeout, max_retries, headers),
         )
 
     def rows(
         self,
-        job_id: str,
+        task_id: str,
         *,
         cursor: (str | NotGiven | None) = NOT_GIVEN,
         limit: (int | NotGiven | None) = NOT_GIVEN,
@@ -1569,30 +1569,34 @@ class Bulk(BulkHelpers):
         max_retries: int | None = None,
         headers: Mapping[str, str] | None = None,
         **extra: object,
-    ) -> Page[models.JobResultLine]:
-        """Call getJobRows. Extra arguments pass through."""
+    ) -> Page[models.TaskResultLine]:
+        """Call getTaskRows. Extra arguments pass through."""
         return self._page(
-            OPERATIONS["getJobRows"],
-            {"jobId": job_id},
+            OPERATIONS["getTaskRows"],
+            {"taskId": task_id},
             parameters({"cursor": cursor, "limit": limit}, extra),
             RequestOptions(timeout, max_retries, headers),
-            models.JobResultLine.model_validate,
+            models.TaskResultLine.model_validate,
         )
 
     def cancel(
         self,
-        job_id: str,
+        task_id: str,
         *,
         timeout: Timeout | None = None,
         max_retries: int | None = None,
         headers: Mapping[str, str] | None = None,
         **extra: object,
-    ) -> Result[models.CancelJobData]:
-        """Call cancelJob. Extra arguments pass through."""
+    ) -> Result[models.CancelTaskData]:
+        """Call cancelTask. Extra arguments pass through."""
         return self._result(
-            OPERATIONS["cancelJob"],
-            {"jobId": job_id},
+            OPERATIONS["cancelTask"],
+            {"taskId": task_id},
             parameters({}, extra),
             RequestOptions(timeout, max_retries, headers),
-            models.CancelJobData.model_validate,
+            models.CancelTaskData.model_validate,
         )
+
+
+Jobs = Tasks
+"""Deprecated: the former name of `Tasks`, the same class."""

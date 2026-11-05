@@ -134,15 +134,17 @@ class APITimeoutError(APIConnectionError):
     pass
 
 
-class JobFailedError(ReverseContactError):
+class TaskFailedError(ReverseContactError):
+    """An async task ended in `errored`. Formerly `JobFailedError`, still importable."""
+
     def __init__(
         self,
-        job_id: str,
+        task_id: str,
         error_code: str | None,
         credits_consumed: int | float | None,
         result: object,
     ) -> None:
-        self.job_id = job_id
+        self.task_id = task_id
         self.error_code = error_code
         self.credits_consumed = credits_consumed
         self.result = result
@@ -153,16 +155,36 @@ class JobFailedError(ReverseContactError):
             "email-not-found",
             "phone-not-found",
         }
-        super().__init__(f"Job {job_id} failed: {error_code or 'unknown error'}")
+        super().__init__(f"Task {task_id} failed: {error_code or 'unknown error'}")
+
+    @property
+    def job_id(self) -> str:
+        """Deprecated: use `task_id`."""
+        return self.task_id
 
 
-class JobTimeoutError(ReverseContactError):
-    def __init__(self, job_id: str, last_status: str | None) -> None:
-        self.job_id = job_id
+class TaskTimeoutError(ReverseContactError):
+    """Waiting ran out of time; the task may still finish. Formerly `JobTimeoutError`."""
+
+    def __init__(
+        self, task_id: str, last_status: str | None, *, resume: str = "tasks.wait"
+    ) -> None:
+        self.task_id = task_id
         self.last_status = last_status
         super().__init__(
-            f"Timed out waiting for job {job_id}. Resume with jobs.wait using this id."
+            f"Timed out waiting for task {task_id}. Resume with {resume} using this id."
         )
+
+    @property
+    def job_id(self) -> str:
+        """Deprecated: use `task_id`."""
+        return self.task_id
+
+
+JobFailedError = TaskFailedError
+"""Deprecated: the former name of `TaskFailedError`, the same class."""
+JobTimeoutError = TaskTimeoutError
+"""Deprecated: the former name of `TaskTimeoutError`, the same class."""
 
 
 def api_error(response: httpx.Response, body: object, is_json: bool) -> APIError:

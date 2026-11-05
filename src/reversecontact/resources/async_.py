@@ -13,9 +13,9 @@ from .._http import (
 )
 from .._jobs import (
     AsyncBulkHelpers,
-    AsyncJob,
-    AsyncJobsHelpers,
     AsyncOperationsHelpers,
+    AsyncTask,
+    AsyncTasksHelpers,
     parse_contacts,
 )
 from .._models import ContactValue, Result
@@ -108,9 +108,9 @@ class AsyncFetch(AsyncResource):
         max_retries: int | None = None,
         headers: Mapping[str, str] | None = None,
         **extra: object,
-    ) -> AsyncJob[models.PersonFull]:
+    ) -> AsyncTask[models.PersonFull]:
         """Call livePerson. Extra arguments pass through."""
-        return await self._job(
+        return await self._task(
             OPERATIONS["livePerson"],
             {},
             parameters({"url": url, "id": id, "webhookUrl": webhook_url}, extra),
@@ -166,9 +166,9 @@ class AsyncFetch(AsyncResource):
         max_retries: int | None = None,
         headers: Mapping[str, str] | None = None,
         **extra: object,
-    ) -> AsyncJob[models.CompanyFull]:
+    ) -> AsyncTask[models.CompanyFull]:
         """Call liveCompany. Extra arguments pass through."""
-        return await self._job(
+        return await self._task(
             OPERATIONS["liveCompany"],
             {},
             parameters({"url": url, "id": id, "webhookUrl": webhook_url}, extra),
@@ -1003,9 +1003,9 @@ class AsyncContact(AsyncResource):
         headers: Mapping[str, str] | None = None,
         idempotency_key: str | None = None,
         **extra: object,
-    ) -> AsyncJob[builtins.list[ContactValue | None]]:
+    ) -> AsyncTask[builtins.list[ContactValue | None]]:
         """Call findContactEmail. Extra arguments pass through."""
-        return await self._job(
+        return await self._task(
             OPERATIONS["findContactEmail"],
             {},
             parameters(
@@ -1035,9 +1035,9 @@ class AsyncContact(AsyncResource):
         headers: Mapping[str, str] | None = None,
         idempotency_key: str | None = None,
         **extra: object,
-    ) -> AsyncJob[models.ContactEmailVerifyResult]:
+    ) -> AsyncTask[models.ContactEmailVerifyResult]:
         """Call verifyContactEmail. Extra arguments pass through."""
-        return await self._job(
+        return await self._task(
             OPERATIONS["verifyContactEmail"],
             {},
             parameters({"email": email, "webhookUrl": webhook_url}, extra),
@@ -1060,9 +1060,9 @@ class AsyncContact(AsyncResource):
         headers: Mapping[str, str] | None = None,
         idempotency_key: str | None = None,
         **extra: object,
-    ) -> AsyncJob[builtins.list[ContactValue | None]]:
+    ) -> AsyncTask[builtins.list[ContactValue | None]]:
         """Call findContactPhone. Extra arguments pass through."""
-        return await self._job(
+        return await self._task(
             OPERATIONS["findContactPhone"],
             {},
             parameters(
@@ -1082,7 +1082,7 @@ class AsyncContact(AsyncResource):
         )
 
 
-class AsyncJobs(AsyncJobsHelpers):
+class AsyncTasks(AsyncTasksHelpers):
     async def retrieve(
         self,
         webhook_id: str,
@@ -1438,7 +1438,7 @@ class AsyncBulk(AsyncBulkHelpers):
         families: (builtins.list[str] | NotGiven | None) = NOT_GIVEN,
         email_type: (str | NotGiven | None) = NOT_GIVEN,
         live: (bool | NotGiven | None) = NOT_GIVEN,
-        name: (str | NotGiven | None) = NOT_GIVEN,
+        task_name: (str | NotGiven | None) = NOT_GIVEN,
         webhook_url: (str | NotGiven | None) = NOT_GIVEN,
         timeout: Timeout | None = None,
         max_retries: int | None = None,
@@ -1456,7 +1456,7 @@ class AsyncBulk(AsyncBulkHelpers):
                     "families": families,
                     "emailType": email_type,
                     "live": live,
-                    "name": name,
+                    "taskName": task_name,
                     "webhookUrl": webhook_url,
                 },
                 extra,
@@ -1477,10 +1477,10 @@ class AsyncBulk(AsyncBulkHelpers):
         max_retries: int | None = None,
         headers: Mapping[str, str] | None = None,
         **extra: object,
-    ) -> AsyncPage[models.ListJobsItem]:
-        """Call listJobs. Extra arguments pass through."""
+    ) -> AsyncPage[models.ListTasksItem]:
+        """Call listTasks. Extra arguments pass through."""
         return await self._page(
-            OPERATIONS["listJobs"],
+            OPERATIONS["listTasks"],
             {},
             parameters(
                 {
@@ -1493,7 +1493,7 @@ class AsyncBulk(AsyncBulkHelpers):
                 extra,
             ),
             RequestOptions(timeout, max_retries, headers),
-            models.ListJobsItem.model_validate,
+            models.ListTasksItem.model_validate,
         )
 
     def list_all(
@@ -1509,9 +1509,9 @@ class AsyncBulk(AsyncBulkHelpers):
         headers: Mapping[str, str] | None = None,
         max_results: int | None = None,
         **extra: object,
-    ) -> AsyncIterator[models.ListJobsItem | None]:
+    ) -> AsyncIterator[models.ListTasksItem | None]:
         return self._iterate(
-            OPERATIONS["listJobs"],
+            OPERATIONS["listTasks"],
             {},
             parameters(
                 {
@@ -1524,32 +1524,32 @@ class AsyncBulk(AsyncBulkHelpers):
                 extra,
             ),
             RequestOptions(timeout, max_retries, headers),
-            models.ListJobsItem.model_validate,
+            models.ListTasksItem.model_validate,
             max_results,
         )
 
     async def retrieve(
         self,
-        job_id: str,
+        task_id: str,
         *,
         wait: (int | NotGiven | None) = NOT_GIVEN,
         timeout: Timeout | None = None,
         max_retries: int | None = None,
         headers: Mapping[str, str] | None = None,
         **extra: object,
-    ) -> Result[models.GetJobData]:
-        """Call getJob. Extra arguments pass through."""
+    ) -> Result[models.GetTaskData]:
+        """Call getTask. Extra arguments pass through."""
         return await self._result(
-            OPERATIONS["getJob"],
-            {"jobId": job_id},
+            OPERATIONS["getTask"],
+            {"taskId": task_id},
             parameters({"wait": wait}, extra),
             RequestOptions(timeout, max_retries, headers),
-            models.GetJobData.model_validate,
+            models.GetTaskData.model_validate,
         )
 
     async def results(
         self,
-        job_id: str,
+        task_id: str,
         *,
         format: (str | NotGiven | None) = NOT_GIVEN,
         timeout: Timeout | None = None,
@@ -1557,17 +1557,17 @@ class AsyncBulk(AsyncBulkHelpers):
         headers: Mapping[str, str] | None = None,
         **extra: object,
     ) -> str:
-        """Call getJobResults. Extra arguments pass through."""
+        """Call getTaskResults. Extra arguments pass through."""
         return await self._text(
-            OPERATIONS["getJobResults"],
-            {"jobId": job_id},
+            OPERATIONS["getTaskResults"],
+            {"taskId": task_id},
             parameters({"format": format}, extra),
             RequestOptions(timeout, max_retries, headers),
         )
 
     async def rows(
         self,
-        job_id: str,
+        task_id: str,
         *,
         cursor: (str | NotGiven | None) = NOT_GIVEN,
         limit: (int | NotGiven | None) = NOT_GIVEN,
@@ -1575,30 +1575,34 @@ class AsyncBulk(AsyncBulkHelpers):
         max_retries: int | None = None,
         headers: Mapping[str, str] | None = None,
         **extra: object,
-    ) -> AsyncPage[models.JobResultLine]:
-        """Call getJobRows. Extra arguments pass through."""
+    ) -> AsyncPage[models.TaskResultLine]:
+        """Call getTaskRows. Extra arguments pass through."""
         return await self._page(
-            OPERATIONS["getJobRows"],
-            {"jobId": job_id},
+            OPERATIONS["getTaskRows"],
+            {"taskId": task_id},
             parameters({"cursor": cursor, "limit": limit}, extra),
             RequestOptions(timeout, max_retries, headers),
-            models.JobResultLine.model_validate,
+            models.TaskResultLine.model_validate,
         )
 
     async def cancel(
         self,
-        job_id: str,
+        task_id: str,
         *,
         timeout: Timeout | None = None,
         max_retries: int | None = None,
         headers: Mapping[str, str] | None = None,
         **extra: object,
-    ) -> Result[models.CancelJobData]:
-        """Call cancelJob. Extra arguments pass through."""
+    ) -> Result[models.CancelTaskData]:
+        """Call cancelTask. Extra arguments pass through."""
         return await self._result(
-            OPERATIONS["cancelJob"],
-            {"jobId": job_id},
+            OPERATIONS["cancelTask"],
+            {"taskId": task_id},
             parameters({}, extra),
             RequestOptions(timeout, max_retries, headers),
-            models.CancelJobData.model_validate,
+            models.CancelTaskData.model_validate,
         )
+
+
+AsyncJobs = AsyncTasks
+"""Deprecated: the former name of `AsyncTasks`, the same class."""

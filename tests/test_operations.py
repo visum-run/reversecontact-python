@@ -99,8 +99,8 @@ async def test_every_operation_wire_contract(h, operation_id, camel_case):
             expected[param["name"]] = sample(param["schema"])
     expected["future_field"] = "passed-through"
     kwargs = expected if camel_case else snake_keys(expected)
-    if entry["kind"] == "job":
-        h.responses.append(ok({"webhookId": "job_test", "status": "created"}))
+    if entry["kind"] == "task":
+        h.responses.append(ok({"webhookId": "task_test", "status": "created"}))
     elif entry["kind"] == "text":
         h.responses.append(
             httpx.Response(200, text="id,name\n1,Jane\n", headers={"content-type": "text/csv"})

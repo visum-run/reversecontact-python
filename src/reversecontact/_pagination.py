@@ -116,8 +116,8 @@ def iteration_params(
         default, maximum = 25, 100
     elif "/members" in op.path:
         default, maximum = 100, 1000
-    elif op.path == "/v2/jobs":
-        # GET /v2/jobs refuses perPage above 100 (JOB_INVALID_INPUT).
+    elif op.path == "/v2/tasks":
+        # GET /v2/tasks refuses perPage above 100 (TASK_INVALID_INPUT).
         default, maximum = 50, 100
     else:
         default, maximum = 200, 200

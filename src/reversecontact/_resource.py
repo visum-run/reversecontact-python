@@ -112,18 +112,18 @@ class SyncResource:
 
         return iterate()
 
-    def _job(
+    def _task(
         self,
         op: Operation,
         paths: Mapping[str, str],
         params: Mapping[str, object],
         options: RequestOptions,
         parser: Callable[[object], T],
-    ) -> Job[T]:
+    ) -> Task[T]:
         response = self._transport.request(op, paths, params, options, ALIASES)
-        from ._jobs import Job
+        from ._jobs import Task
 
-        return Job(self._transport, response, parser)
+        return Task(self._transport, response, parser)
 
 
 class AsyncResource:
@@ -215,19 +215,19 @@ class AsyncResource:
 
         return iterate()
 
-    async def _job(
+    async def _task(
         self,
         op: Operation,
         paths: Mapping[str, str],
         params: Mapping[str, object],
         options: RequestOptions,
         parser: Callable[[object], T],
-    ) -> AsyncJob[T]:
+    ) -> AsyncTask[T]:
         response = await self._transport.request(op, paths, params, options, ALIASES)
-        from ._jobs import AsyncJob
+        from ._jobs import AsyncTask
 
-        return AsyncJob(self._transport, response, parser)
+        return AsyncTask(self._transport, response, parser)
 
 
 if TYPE_CHECKING:
-    from ._jobs import AsyncJob, Job
+    from ._jobs import AsyncTask, Task

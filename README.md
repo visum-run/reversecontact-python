@@ -7,7 +7,7 @@
 
 Reverse Contact is a B2B data API: enrich people and companies, fetch profiles, search people and organizations, and find email addresses and phone numbers.
 
-This is the official Python client for the Reverse Contact V2 API: synchronous and asynchronous clients, typed Pydantic models, automatic retries, cursor pagination, asynchronous jobs and Lists.
+This is the official Python client for the Reverse Contact V2 API: synchronous and asynchronous clients, typed Pydantic models, automatic retries, cursor pagination, asynchronous tasks and Lists.
 
 [Documentation](https://docs.reversecontact.com/sdk/python) · [API reference](https://docs.reversecontact.com/api-reference) · [Get an API key](https://app.reversecontact.com) · [Changelog](https://github.com/visum-run/reversecontact-python/blob/main/CHANGELOG.md)
 
@@ -58,21 +58,21 @@ Keep API keys on your server. Both `rc_*` API keys and `oat_*` tokens work; the 
 | Enrichment | `enrich.person`, `enrich.company` | `client.enrich.company(domain="example.com")` |
 | Cached fetch | `fetch.person`, `fetch.company` | `client.fetch.person(url="https://social.com/in/janedoe")` |
 | Cache checks (free) | `fetch.check_person`, `fetch.check_company` | `client.fetch.check_company(url="https://social.com/company/acme")` |
-| Live fetch (job) | `fetch.person_live`, `fetch.company_live` | `client.fetch.company_live(url="https://social.com/company/acme")` |
+| Live fetch (task) | `fetch.person_live`, `fetch.company_live` | `client.fetch.company_live(url="https://social.com/company/acme")` |
 | People search | `search.people`, `search.people_by_prompt`, `search.people_lookalike` | `client.search.people_by_prompt(prompt="Engineers in Paris", per_page=10)` |
 | Company search | `search.organizations`, `search.organizations_by_prompt` | `client.search.organizations(company_name="Acme", per_page=10)` |
 | Search iterators | `search.iter_people`, `search.iter_people_by_prompt`, `search.iter_people_lookalike`, `search.iter_organizations`, `search.iter_organizations_by_prompt` | `client.search.iter_people(first_name="Jane", max_results=10)` |
 | Counts (free) | `search.count_people`, `search.count_organizations` | `client.search.count_organizations(company_name="Acme")` |
 | Auto-suggestion (free) | `search.people_auto_suggestion` | `client.search.people_auto_suggestion(field="skills", query="pyth")` |
 | Filter catalogs (free) | `search.people_fields`, `search.organizations_fields` | `client.search.people_fields()` |
-| Contact discovery (job) | `contact.find_email`, `contact.find_phone`, `contact.verify_email` | `client.contact.verify_email(email="jane@example.com")` |
-| Jobs | `jobs.retrieve`, `jobs.wait` | `client.jobs.retrieve("saved-job-id", wait=20)` |
+| Contact discovery (task) | `contact.find_email`, `contact.find_phone`, `contact.verify_email` | `client.contact.verify_email(email="jane@example.com")` |
+| Tasks (`jobs` is a deprecated alias) | `tasks.retrieve`, `tasks.wait` | `client.tasks.retrieve("saved-task-id", wait=20)` |
 | Usage (free) | `usage.retrieve` | `client.usage.retrieve().quotas` |
 | Lists | `lists.list`, `lists.create`, `lists.retrieve`, `lists.delete`, `lists.export`, `lists.import_signals` | `client.lists.create(name="Prospects", entity="persons")` |
 | List members | `lists.members.list`, `lists.members.add`, `lists.members.remove` | `client.lists.members.remove("list-id", member_ids=["member-id"])` |
 | List operations | `lists.operations.retrieve`, `lists.operations.cancel`, `lists.operations.wait` | `client.lists.operations.retrieve("list-id", "operation-id", wait=20)` |
-| Bulk enrich | `bulk.enrich_persons`, `bulk.list`, `bulk.list_all`, `bulk.retrieve`, `bulk.wait`, `bulk.cancel` | `client.bulk.retrieve("job-id")` |
-| Bulk results (free) | `bulk.results`, `bulk.rows`, `bulk.iter_rows` | `client.bulk.rows("job-id", limit=100)` |
+| Bulk enrich | `bulk.enrich_persons`, `bulk.list`, `bulk.list_all`, `bulk.retrieve`, `bulk.wait`, `bulk.cancel` | `client.bulk.retrieve("task-id")` |
+| Bulk results (free) | `bulk.results`, `bulk.rows`, `bulk.iter_rows` | `client.bulk.rows("task-id", limit=100)` |
 
 The asynchronous client has the same resources and methods. Credit costs per endpoint are listed in the [API reference](https://docs.reversecontact.com/api-reference).
 
@@ -117,52 +117,52 @@ The parameters also accept any plain string, so a value added to a list after yo
 
 ### Live fetch
 
-A live fetch returns a job handle immediately. Save its id before waiting, and reuse the id after a process restart.
+A live fetch returns a task handle immediately. Save its id before waiting, and reuse the id after a process restart.
 
 ```python
 with ReverseContact(api_key=os.environ["RC_API_KEY"]) as client:
-    job = client.fetch.person_live(url="https://social.com/in/janedoe")
-    print("Save job id:", job.id)
-    snapshot = job.wait(timeout=1800)
+    task = client.fetch.person_live(url="https://social.com/in/janedoe")
+    print("Save task id:", task.id)
+    snapshot = task.wait(timeout=1800)
     if snapshot.data:
         print(snapshot.data.status, snapshot.data.result)
-    # Later: client.jobs.wait(saved_job_id)
+    # Later: client.tasks.wait(saved_task_id)
 ```
 
 ### Find email addresses and phone numbers
 
-`contact.find_email` and `contact.find_phone` return a job handle. Poll with `job.wait()` or save `job.id` and resume with `client.jobs.wait(saved_id)`.
+`contact.find_email` and `contact.find_phone` return a task handle. Poll with `task.wait()` or save `task.id` and resume with `client.tasks.wait(saved_id)`.
 
-Each finder takes one person: `url`, `id` (a `prs_…` person id from a search, fetch or enrich result), or a name with `company_domain`. An id that matches no person raises `UnprocessableEntityError` before any job starts.
+Each finder takes one person: `url`, `id` (a `prs_…` person id from a search, fetch or enrich result), or a name with `company_domain`. An id that matches no person raises `UnprocessableEntityError` before any task starts.
 
 ```python
-job = client.contact.find_email(id="prs_01jbd5vewyenebxgaz869ffe5t")
+task = client.contact.find_email(id="prs_01jbd5vewyenebxgaz869ffe5t")
 ```
 
 ### Verify an email address
 
-`contact.verify_email` returns a job handle like the finders. Its result holds `email` and `status`, one of `valid`, `risky`, `invalid` or `unknown` (the `EmailVerificationStatus` enum).
+`contact.verify_email` returns a task handle like the finders. Its result holds `email` and `status`, one of `valid`, `risky`, `invalid` or `unknown` (the `EmailVerificationStatus` enum).
 
 ```python
-job = client.contact.verify_email(email="jane@example.com")
-print(job.wait().data.result.status)
+task = client.contact.verify_email(email="jane@example.com")
+print(task.wait().data.result.status)
 ```
 
 #### Safe retries
 
-Each contact submit sends one UUID v4 `Idempotency-Key`, reused on every retry of that call. The server retains a successful acknowledgement for 24 hours per workspace and endpoint. Reusing the same key and body returns that acknowledgement without starting or charging another job. `job.replayed` reports whether this happened; the raw header is also available in `job.http_response.headers`.
+Each contact submit sends one UUID v4 `Idempotency-Key`, reused on every retry of that call. The server retains a successful acknowledgement for 24 hours per workspace and endpoint. Reusing the same key and body returns that acknowledgement without starting or charging another task. `task.replayed` reports whether this happened; the raw header is also available in `task.http_response.headers`.
 
 Persist your own key with the request body before submitting to safely retry after a process restart. Pass it as `idempotency_key` or in `headers={"Idempotency-Key": saved_key}`; the option takes precedence. Keys must contain 1 to 255 printable ASCII characters, without spaces. Invalid keys raise `ReverseContactError` before sending. A changed body with the same key raises `UnprocessableEntityError` with code `IDEMPOTENCY_KEY_REUSED`. An in-flight request returns `IDEMPOTENCY_KEY_IN_USE` and is retried after `Retry-After`, within `max_retries`.
 
 ```python
 with ReverseContact(api_key=os.environ["RC_API_KEY"]) as client:
-    job = client.contact.find_email(
+    task = client.contact.find_email(
         first_name="Jane",
         last_name="Doe",
         company_domain="example.com",
         idempotency_key="saved-contact-request-123",
     )
-    print(job.id, job.replayed)
+    print(task.id, task.replayed)
 ```
 
 ### Bulk enrich
@@ -170,20 +170,26 @@ with ReverseContact(api_key=os.environ["RC_API_KEY"]) as client:
 ```python
 with ReverseContact(api_key=os.environ["RC_API_KEY"]) as client:
     submitted = client.bulk.enrich_persons(
-        items=[{"email": "jane@example.com", "external_id": "crm-42"}], families=["profile"]
+        items=[{"email": "jane@example.com", "external_id": "crm-42"}],
+        families=["profile"],
+        task_name="CRM sync",
     )
-    if submitted.data and submitted.data.job and submitted.data.job.id:
-        job_id = submitted.data.job.id
-        # Each result in the order sent, as soon as it is ready, while the job runs.
-        for line in client.bulk.iter_rows(job_id):
+    if submitted.data and submitted.data.task and submitted.data.task.id:
+        task_id = submitted.data.task.id
+        # Each result in the order sent, as soon as it is ready, while the task runs.
+        for line in client.bulk.iter_rows(task_id):
             if line is not None:
                 print(line.row, line.status, line.person)
-        # Or the whole file once the job is completed or cancelled.
-        client.bulk.wait(job_id)
-        ndjson = client.bulk.results(job_id, format="ndjson")
+        # Or the whole file once the task is completed or cancelled.
+        client.bulk.wait(task_id)
+        ndjson = client.bulk.results(task_id, format="ndjson")
 ```
 
-`bulk.rows(job_id, cursor=..., limit=...)` reads one page of `JobResultLine` items (at most 100), with the job status in `page.extras["status"]`. While the job runs, a page stops at the first item not finished; `iter_rows` then waits `Retry-After` (2 seconds by default) and reads the same cursor again. It ends when `next_cursor` is `None`, or when the job is paused: read on later with `rows`. A cancelled job still finishes the items it had started, within the hour: `iter_rows` waits for them, while `results` already gives them with the status `running`. `results` returns the file as text, the CSV by default or one JSON object per line with `format="ndjson"`. A job stored before these formats existed raises `ConflictError` (`JOB_RESULTS_FORMAT_UNAVAILABLE`); its CSV stays available.
+`bulk.enrich_persons` posts to `/v2/bulk` and answers with the task in `data.task`; `task_name` (sent as `taskName`) names it in the task history (default `Sent via API`). `bulk.list`, `bulk.retrieve`, `bulk.wait` and `bulk.cancel` read and stop every background task of the workspace under `/v2/tasks`; a task's `task_name` is the file name or the name given at creation. `bulk.list_all` asks for 50 tasks per page by default and accepts `per_page` up to 100.
+
+`bulk.rows(task_id, cursor=..., limit=...)` reads one page of `TaskResultLine` items (at most 100), with the task status in `page.extras["status"]`. While the task runs, a page stops at the first item not finished; `iter_rows` then waits `Retry-After` (2 seconds by default) and reads the same cursor again. It ends when `next_cursor` is `None`, or when the task is paused: read on later with `rows`. A cancelled task still finishes the items it had started, within the hour: `iter_rows` waits for them, while `results` already gives them with the status `running`. `results` returns the file as text, the CSV by default or one JSON object per line with `format="ndjson"`. A task stored before these formats existed raises `ConflictError` (`TASK_RESULTS_FORMAT_UNAVAILABLE`); its CSV stays available. An unknown task id raises `NotFoundError` (`TASK_NOT_FOUND`).
+
+With `webhook_url`, that URL receives one POST when the task settles, with the event `task.updated` in its body and in the `x-reversecontact-event` header: `{event, taskId, type, status, pollUrl, resultsUrl, occurredAt}`. It carries no results, and the same event can arrive twice: key it on `taskId` and `status`. This body is not the `{webhookId, data}` delivery of live fetches and contact lookups, so `parse_webhook_delivery` does not apply to it.
 
 ### Asynchronous client
 
@@ -203,10 +209,10 @@ async def main() -> None:
         async for person in client.search.iter_people(first_name="Jane", max_results=10):
             if person is not None:
                 print(person.id)
-        job = await client.contact.find_email(
+        task = await client.contact.find_email(
             first_name="Jane", last_name="Doe", company_domain="example.com"
         )
-        snapshot = await job.wait()
+        snapshot = await task.wait()
         print(snapshot.data.result if snapshot.data else None)
 
 
@@ -321,13 +327,15 @@ Timeouts raise `APITimeoutError`, a subtype of `APIConnectionError`. GET request
 
 The four cached lookup and enrichment methods return `None` for JSON no-match responses with HTTP 404. The codes `NOT_FOUND` and `HTTP_404`, including non-JSON 404s from a proxy or wrong base URL, raise `NotFoundError`. A 404 from any other operation also raises `NotFoundError`.
 
-## Jobs and imports
+## Tasks and imports
 
-Live fetches and contact finders return `Job[T]` or `AsyncJob[T]`. A handle exposes `.id`, `.replayed`, `.status`, `.poll_url`, `.data`, `.quotas`, `.metadata`, and `.http_response`. `retrieve(wait=20)` polls once. `wait(timeout=1800, poll_wait=20, on_poll=callback)` returns `Result[JobSnapshot[T]]`, with the snapshot under `.data` and quotas, metadata, and the raw response alongside it. `retrieve()` and `jobs.wait()` use the same envelope; `on_poll` receives it too.
+Live fetches and contact finders return `Task[T]` or `AsyncTask[T]`. A handle exposes `.id`, `.replayed`, `.status`, `.poll_url`, `.data`, `.quotas`, `.metadata`, and `.http_response`. `retrieve(wait=20)` polls once. `wait(timeout=1800, poll_wait=20, on_poll=callback)` returns `Result[TaskSnapshot[T]]`, with the snapshot under `.data` and quotas, metadata, and the raw response alongside it. `retrieve()` and `tasks.wait()` use the same envelope; `on_poll` receives it too.
 
-`wait()` long polls with `wait=20` by default. An early answer waits out the remaining `Retry-After` interval before the next poll starts; an already held poll can continue immediately. A missing header defaults to two seconds for jobs. Poll retries are independent of the creating call: five consecutive retryable failures raise, and a good response resets the counter. The overall deadline caps each poll's HTTP timeout. The query wait is also reduced to the remaining whole seconds. Async polls are cancelled on expiry. Sync polls run directly in the caller's thread, with no background workers; an expired deadline raises `JobTimeoutError` when the HTTP phase finishes or times out. A bounded overshoot of one HTTP phase is possible. The error preserves the job id and last observed status.
+`wait()` long polls with `wait=20` by default. An early answer waits out the remaining `Retry-After` interval before the next poll starts; an already held poll can continue immediately. A missing header defaults to two seconds for tasks. Poll retries are independent of the creating call: five consecutive retryable failures raise, and a good response resets the counter. The overall deadline caps each poll's HTTP timeout. The query wait is also reduced to the remaining whole seconds. Async polls are cancelled on expiry. Sync polls run directly in the caller's thread, with no background workers; an expired deadline raises `TaskTimeoutError` when the HTTP phase finishes or times out. A bounded overshoot of one HTTP phase is possible. The error preserves the task id and last observed status.
 
-`JobFailedError` includes `.job_id`, `.error_code`, `.credits_consumed`, `.result`, and `.not_found`. `JobTimeoutError` includes `.job_id` and `.last_status`; the server job may still finish. Resume with `jobs.wait(saved_id)`. A non-null `delivery_status` on a succeeded job does not make the job fail. An expired result raises `GoneError`. The SDK never recreates a failed job, even for retryable job error codes: a new job can be billed again, so the caller decides.
+`TaskFailedError` includes `.task_id`, `.error_code`, `.credits_consumed`, `.result`, and `.not_found`. `TaskTimeoutError` includes `.task_id` and `.last_status`; the server task may still finish. Resume with the wait that raised it, as its message says: `tasks.wait(saved_id)`, `bulk.wait` or `lists.operations.wait`. A non-null `delivery_status` on a succeeded task does not make the task fail. An expired result raises `GoneError`. The SDK never recreates a failed task, even for retryable task error codes: a new task can be billed again, so the caller decides.
+
+The former names still work and are deprecated: `client.jobs` is `client.tasks`, `Job` and `AsyncJob` are `Task` and `AsyncTask`, `JobSnapshot` is `TaskSnapshot`, `JobFailedError` and `JobTimeoutError` are `TaskFailedError` and `TaskTimeoutError` (their `.job_id` reads `.task_id`), and `reversecontact.types.JobAckData` is `TaskAckData`.
 
 ```python
 with ReverseContact(api_key=os.environ["RC_API_KEY"]) as client:
@@ -343,18 +351,18 @@ List operation waiting honors `pollAfterSeconds` or `Retry-After`, falling back 
 
 ## Webhook deliveries
 
-Pass `webhook_url` to a job-creating method to receive a push delivery. `parse_webhook_delivery` accepts a decoded body, a JSON string, or bytes and returns the typed `{webhookId, data}` wrapper; malformed deliveries raise `ReverseContactError`. `data.errorCode` must be a string or null; `.is_error` is true only for a non-empty string.
+Pass `webhook_url` to a task-creating method to receive a push delivery. `parse_webhook_delivery` accepts a decoded body, a JSON string, or bytes and returns the typed `{webhookId, data}` wrapper; malformed deliveries raise `ReverseContactError`. `data.errorCode` must be a string or null; `.is_error` is true only for a non-empty string.
 
 ```python
 from reversecontact import parse_webhook_delivery
 
 delivery = parse_webhook_delivery(
-    {"webhookId": "saved-job-id", "data": {"errorCode": "email-not-found"}}
+    {"webhookId": "saved-task-id", "data": {"errorCode": "email-not-found"}}
 )
 print(delivery.webhook_id, delivery.is_error, delivery.data)
 ```
 
-Use an HTTPS endpoint, respond with 2xx within 10 seconds, and process the delivery asynchronously. Deduplicate on `webhookId` because rare duplicates can occur. You can still poll a job that uses push delivery. See the [webhooks guide](https://docs.reversecontact.com/guides/webhooks).
+Use an HTTPS endpoint, respond with 2xx within 10 seconds, and process the delivery asynchronously. Deduplicate on `webhookId` because rare duplicates can occur. You can still poll a task that uses push delivery. See the [webhooks guide](https://docs.reversecontact.com/guides/webhooks).
 
 ## Best practices
 
@@ -362,7 +370,7 @@ Use an HTTPS endpoint, respond with 2xx within 10 seconds, and process the deliv
 - Check counts and available filter fields before paid searches; set explicit result budgets.
 - Prefer cached fetches before live fetches when freshness allows it.
 - Handle lookup no-matches and distinguish quota limits from transient failures.
-- Persist job ids before waiting, and include request ids when contacting support.
+- Persist task ids before waiting, and include request ids when contacting support.
 - Observe quotas returned by the API; do not assume a fixed credit charge for every workspace.
 
 Read the [error and retry guide](https://docs.reversecontact.com/guides/errors-retries), [polling guide](https://docs.reversecontact.com/guides/polling), [credits guide](https://docs.reversecontact.com/guides/credits), and [production checklist](https://docs.reversecontact.com/guides/production-checklist).
@@ -384,7 +392,7 @@ The SDK follows [semantic versioning](https://semver.org). While the version is 
 - SDK bugs and feature requests: [open an issue](https://github.com/visum-run/reversecontact-python/issues).
 - Questions about your account, credits, or API results: email [support@reversecontact.com](mailto:support@reversecontact.com).
 
-Include the request id (`response.metadata.request_id`, or `error.request_id`) and any job id.
+Include the request id (`response.metadata.request_id`, or `error.request_id`) and any task id.
 
 ## Contributing
 

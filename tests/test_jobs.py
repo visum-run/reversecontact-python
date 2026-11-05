@@ -11,7 +11,7 @@ def poll(status, **extra):
     return {"webhookId": "job_test", "status": status, "result": None, **extra}
 
 
-async def test_job_handle_wait_and_pacing(h):
+async def test_task_handle_wait_and_pacing(h):
     def held(request):
         h.clock.now += 10
         return ok(poll("in_progress"), headers={"Retry-After": "2"})
@@ -57,7 +57,7 @@ async def test_job_handle_wait_and_pacing(h):
 
 
 @pytest.mark.parametrize("method", ["find_email", "find_phone"])
-async def test_contact_job_typed_array(h, method):
+async def test_contact_task_typed_array(h, method):
     h.responses.extend(
         [
             ok({"webhookId": "job_test"}),
@@ -71,7 +71,7 @@ async def test_contact_job_typed_array(h, method):
 
 
 @pytest.mark.parametrize("method", ["find_email", "find_phone"])
-async def test_contact_job_accepts_a_person_id(h, method):
+async def test_contact_task_accepts_a_person_id(h, method):
     h.responses.append(ok({"webhookId": "job_test"}))
     await h.call(getattr(h.client.contact, method), id="prs_01jbd5vewyenebxgaz869ffe5t")
     assert json.loads(h.requests[0].content) == {"id": "prs_01jbd5vewyenebxgaz869ffe5t"}
@@ -89,14 +89,14 @@ async def test_contact_job_accepts_a_person_id(h, method):
         ("result-unavailable", False),
     ],
 )
-async def test_failed_jobs_never_recreated(h, code, not_found):
+async def test_failed_tasks_never_recreated(h, code, not_found):
     h.responses.append(
         ok(poll("errored", errorCode=code, result={"partial": True}, creditsConsumed=2))
     )
-    with pytest.raises(rc.JobFailedError) as caught:
-        await h.call(h.client.jobs.wait, "job_test")
+    with pytest.raises(rc.TaskFailedError) as caught:
+        await h.call(h.client.tasks.wait, "job_test")
     error = caught.value
-    assert error.job_id == "job_test"
+    assert error.task_id == "job_test"
     assert error.error_code == code
     assert error.not_found is not_found
     assert error.credits_consumed == 2
@@ -107,10 +107,13 @@ async def test_failed_jobs_never_recreated(h, code, not_found):
 
 async def test_local_deadline_with_last_status(h):
     h.responses.append(ok(poll("in_progress")))
-    with pytest.raises(rc.JobTimeoutError) as caught:
-        await h.call(h.client.jobs.wait, "job_test", timeout=1)
-    assert caught.value.job_id == "job_test"
+    with pytest.raises(rc.TaskTimeoutError) as caught:
+        await h.call(h.client.tasks.wait, "job_test", timeout=1)
+    assert caught.value.task_id == "job_test"
     assert caught.value.last_status == "in_progress"
+    assert str(caught.value) == (
+        "Timed out waiting for task job_test. Resume with tasks.wait using this id."
+    )
     assert h.clock.now == 1
     assert h.requests[0].url.params["wait"] == "1"
     assert h.clock.sleeps == [1]
@@ -120,7 +123,7 @@ async def test_local_deadline_with_last_status(h):
 async def test_poll_gone_or_not_found(h, status, error):
     h.responses.append(failure(status))
     with pytest.raises(error):
-        await h.call(h.client.jobs.wait, "job_test")
+        await h.call(h.client.tasks.wait, "job_test")
     assert not h.clock.sleeps
 
 
@@ -130,7 +133,7 @@ async def test_poll_retries_reset_after_good_response(h):
     h.responses.append(ok(poll("in_progress")))
     h.responses.extend([failure(502, headers={"Retry-After": "1"}) for _ in range(4)])
     h.responses.append(ok(poll("succeeded", result={})))
-    value = await h.call(h.client.jobs.wait, "job_test")
+    value = await h.call(h.client.tasks.wait, "job_test")
     assert value.data.status == "succeeded"
     assert len(h.requests) == 10
     assert h.clock.sleeps == [1, 1, 1, 1, 2, 1, 1, 1, 1]
@@ -139,15 +142,15 @@ async def test_poll_retries_reset_after_good_response(h):
 async def test_poll_five_consecutive_failures(h):
     h.responses.extend([failure(503) for _ in range(5)])
     with pytest.raises(rc.InternalServerError):
-        await h.call(h.client.jobs.wait, "job_test")
+        await h.call(h.client.tasks.wait, "job_test")
     assert len(h.requests) == 5
     assert len(h.clock.sleeps) == 4
 
 
 async def test_poll_deadline_during_retry_sleep(h):
     h.responses.append(failure(503, headers={"Retry-After": "4"}))
-    with pytest.raises(rc.JobTimeoutError):
-        await h.call(h.client.jobs.wait, "job_test", timeout=2)
+    with pytest.raises(rc.TaskTimeoutError):
+        await h.call(h.client.tasks.wait, "job_test", timeout=2)
     assert h.clock.now == 2
     assert len(h.requests) == 1
 
@@ -155,10 +158,10 @@ async def test_poll_deadline_during_retry_sleep(h):
 async def test_poll_timeout_floor(h):
     h.client._transport.timeout = httpx.Timeout(1, connect=2)
     h.responses.append(ok(poll("succeeded")))
-    await h.call(h.client.jobs.wait, "job_test")
+    await h.call(h.client.tasks.wait, "job_test")
     assert all(value >= 35 for value in h.requests[0].extensions["timeout"].values())
     h.responses.append(ok(poll("succeeded")))
-    await h.call(h.client.jobs.retrieve, "job_test", wait=20, timeout=0.5)
+    await h.call(h.client.tasks.retrieve, "job_test", wait=20, timeout=0.5)
     assert h.requests[-1].extensions["timeout"]["read"] >= 35
 
 
@@ -190,10 +193,11 @@ async def test_list_operation_header_pacing_and_deadline(h):
     h.responses.append(
         ok({"clientAction": "poll", "status": "running"}, headers={"Retry-After": "9"})
     )
-    with pytest.raises(rc.JobTimeoutError) as caught:
+    with pytest.raises(rc.TaskTimeoutError) as caught:
         await h.call(h.client.lists.operations.wait, "list_test", "op_test", timeout=3)
-    assert caught.value.job_id == "op_test"
+    assert caught.value.task_id == "op_test"
     assert caught.value.last_status == "running"
+    assert "Resume with lists.operations.wait" in str(caught.value)
     assert h.clock.sleeps == [3]
 
 
@@ -257,3 +261,30 @@ async def test_list_poll_retries(h):
         await h.call(h.client.lists.operations.wait, "list_test", "op_test")
     ).data.client_action == "done"
     assert h.clock.sleeps == [4]
+
+
+async def test_deprecated_job_names_are_the_task_names(h):
+    assert h.client.jobs is h.client.tasks
+    assert rc.Job is rc.Task
+    assert rc.AsyncJob is rc.AsyncTask
+    assert rc.JobSnapshot is rc.TaskSnapshot
+    assert rc.JobFailedError is rc.TaskFailedError
+    assert rc.JobTimeoutError is rc.TaskTimeoutError
+    assert rc.types.JobAckData is rc.types.TaskAckData
+    h.responses.append(ok(poll("succeeded", result={})))
+    value = await h.call(h.client.jobs.wait, "job_test")
+    assert value.data.status == "succeeded"
+    assert h.requests[0].url.path == "/v2/webhooks/job_test"
+
+
+def test_deprecated_job_id_reads_the_task_id():
+    timeout = rc.JobTimeoutError("task_test", "in_progress")
+    assert isinstance(timeout, rc.TaskTimeoutError)
+    assert isinstance(rc.TaskTimeoutError("task_test", None), rc.JobTimeoutError)
+    assert timeout.job_id == timeout.task_id == "task_test"
+    failed = rc.JobFailedError("task_test", "email-not-found", 1, None)
+    assert isinstance(failed, rc.TaskFailedError)
+    assert failed.job_id == "task_test"
+    assert str(failed) == "Task task_test failed: email-not-found"
+    with pytest.raises(AttributeError):
+        failed.job_id = "other"

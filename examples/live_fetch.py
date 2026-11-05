@@ -1,15 +1,15 @@
-"""Save the job id before waiting so the job can be resumed after a restart."""
+"""Save the task id before waiting so the task can be resumed after a restart."""
 
 import os
 
-from reversecontact import JobTimeoutError, ReverseContact
+from reversecontact import ReverseContact, TaskTimeoutError
 
 with ReverseContact(api_key=os.environ["RC_API_KEY"]) as client:
-    job = client.fetch.person_live(url="https://social.com/in/janedoe")
-    print("Save this job id:", job.id)
+    task = client.fetch.person_live(url="https://social.com/in/janedoe")
+    print("Save this task id:", task.id)
     try:
-        snapshot = job.wait(timeout=1800)
+        snapshot = task.wait(timeout=1800)
         if snapshot.data and snapshot.data.result:
             print(snapshot.data.result.to_dict())
-    except JobTimeoutError as error:
-        print("Resume later with client.jobs.wait:", error.job_id)
+    except TaskTimeoutError as error:
+        print("Resume later with client.tasks.wait:", error.task_id)

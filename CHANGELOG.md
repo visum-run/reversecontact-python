@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.1 (2026-11-09)
+
+- `bulk.enrich_persons` takes `families=["check"]`: the free person check of each item that has a profile URL (`linkedinUrl`), at no cost. It tells whether the profile is in the database, when it was last updated and how much of it there is. It runs alone, not with another family nor with `live`. Each result line of such a task carries `check` (`TaskResultLineCheck` in `reversecontact.types`: `exists`, `last_update`, `experience_count`, `skill_count`, `school_count`), and its `status` reads `found` or `not_found`.
+- `search.people_auto_suggestion` completes industries, country codes and areas too: `field` takes `industry`, `countryCode` and `area` besides `skills`. A country answers to its ISO code or its name (`FR` and `fran` both give France first), an area to its id, acronym or name (`DACH`). Each suggestion now carries `label`, the text to show, next to `value`, the text to send in the filter (`value="FR"`, `label="France"`; a skill's label is the skill itself).
+- `lists.export` accepts `format="ndjson"` and returns one JSON object per line (`ListExportLine` in `reversecontact.types`): the row `lists.members.list` returns, then `person` (a persons List, in the `/v2/enrich/persons` shape), `company` (a companies List, or the Company details of a person member, in the `/v2/enrich/companies` shape), `isFullProfile` and `customColumns`. The CSV stays the default, and `fields="..."` chooses its columns.
+
 ## 0.4.0 (2026-11-05)
 
 - Breaking: the background jobs of the Bulk API are now called tasks, with no compatibility for the old routes. `client.bulk` keeps every method name (`enrich_persons`, `list`, `list_all`, `retrieve`, `wait`, `results`, `rows`, `iter_rows`, `cancel`); what changes:

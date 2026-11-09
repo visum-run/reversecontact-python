@@ -76,7 +76,7 @@ Keep API keys on your server. Both `rc_*` API keys and `oat_*` tokens work; the 
 
 The asynchronous client has the same resources and methods. Credit costs per endpoint are listed in the [API reference](https://docs.reversecontact.com/api-reference).
 
-The Lists API is available only in enabled environments. Disabled endpoints can return `GoneError` with an `alternative` property. CSV exports return a string: `csv_text = client.lists.export("list-id")`.
+The Lists API is available only in enabled environments. Disabled endpoints can return `GoneError` with an `alternative` property. Exports return a string: the CSV by default, `csv_text = client.lists.export("list-id")`, or one JSON object per line with `client.lists.export("list-id", format="ndjson")`.
 
 Path ids are positional. Body and query arguments use snake_case; their exact API camelCase spellings also work. Unknown keyword arguments pass through unchanged. Known nested fields in dictionaries also accept snake_case. Omitted fields stay omitted, and explicit `None` is sent as JSON null in a body. No URL domain is validated locally.
 

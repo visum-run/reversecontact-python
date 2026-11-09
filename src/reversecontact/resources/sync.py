@@ -1264,6 +1264,8 @@ class Lists(SyncResource):
         self,
         list_id: str,
         *,
+        format: (str | NotGiven | None) = NOT_GIVEN,
+        fields: (str | NotGiven | None) = NOT_GIVEN,
         timeout: Timeout | None = None,
         max_retries: int | None = None,
         headers: Mapping[str, str] | None = None,
@@ -1273,7 +1275,7 @@ class Lists(SyncResource):
         return self._text(
             OPERATIONS["exportList"],
             {"listId": list_id},
-            parameters({}, extra),
+            parameters({"format": format, "fields": fields}, extra),
             RequestOptions(timeout, max_retries, headers),
         )
 

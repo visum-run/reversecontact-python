@@ -439,6 +439,7 @@ class TaskResultLine(Model):
     linkedin_url: str | None = Field(None, alias="linkedinUrl")
     contact_email: TaskResultLineContactEmail | None = Field(None, alias="contactEmail")
     contact_phone: TaskResultLineContactPhone | None = Field(None, alias="contactPhone")
+    check: TaskResultLineCheck | None = Field(None, alias="check")
 
 
 class TaskResultLineContactEmail(Model):
@@ -451,6 +452,60 @@ class TaskResultLineContactPhone(Model):
     status: str | None = Field(None, alias="status")
     value: str | None = Field(None, alias="value")
     type: str | None = Field(None, alias="type")
+
+
+class TaskResultLineCheck(Model):
+    exists: bool | None = Field(None, alias="exists")
+    last_update: str | None = Field(None, alias="lastUpdate")
+    experience_count: int | None = Field(None, alias="experienceCount")
+    skill_count: int | None = Field(None, alias="skillCount")
+    school_count: int | None = Field(None, alias="schoolCount")
+
+
+class ListExportMemberLine(Model):
+    kind: str | None = Field(None, alias="kind")
+    id: str | None = Field(None, alias="id")
+    entity_id: str | None = Field(None, alias="entityId")
+    linkedin_url: str | None = Field(None, alias="linkedinUrl")
+    status: str | None = Field(None, alias="status")
+    fields: dict[str, object] | None = Field(None, alias="fields")
+    added_at: str | None = Field(None, alias="addedAt")
+    families: dict[str, object] | None = Field(None, alias="families")
+    external_id: str | None = Field(None, alias="externalId")
+    person: EnrichedPersonFull | EnrichedPersonLight | None = Field(None, alias="person")
+    company: EnrichedCompanyFull | EnrichedCompanyLight | None = Field(None, alias="company")
+    is_full_profile: bool | None = Field(None, alias="isFullProfile")
+    custom_columns: builtins.list[ListExportMemberLineCustomColumnsItem | None] | None = Field(
+        None, alias="customColumns"
+    )
+
+
+class ListExportMemberLineCustomColumnsItem(Model):
+    id: str | None = Field(None, alias="id")
+    name: str | None = Field(None, alias="name")
+    value: str | int | float | bool | None = Field(None, alias="value")
+
+
+class ListExportPendingLine(Model):
+    kind: str | None = Field(None, alias="kind")
+    id: str | None = Field(None, alias="id")
+    signal: dict[str, object] | None = Field(None, alias="signal")
+    source: str | None = Field(None, alias="source")
+    added_at: str | None = Field(None, alias="addedAt")
+    fields: dict[str, object] | None = Field(None, alias="fields")
+    custom_columns: builtins.list[ListExportPendingLineCustomColumnsItem | None] | None = Field(
+        None, alias="customColumns"
+    )
+
+
+class ListExportPendingLineCustomColumnsItem(Model):
+    id: str | None = Field(None, alias="id")
+    name: str | None = Field(None, alias="name")
+    value: str | int | float | bool | None = Field(None, alias="value")
+
+
+class ListExportLine(Model):
+    pass
 
 
 class EnrichCompanyData(Model):
@@ -728,6 +783,7 @@ class SearchPeopleAutoSuggestionData(Model):
 
 class SearchPeopleAutoSuggestionDataSuggestionsItem(Model):
     value: str | None = Field(None, alias="value")
+    label: str | None = Field(None, alias="label")
 
 
 class CheckPersonData(Model):
@@ -1944,6 +2000,12 @@ EnrichPersonData.model_rebuild()
 TaskResultLine.model_rebuild()
 TaskResultLineContactEmail.model_rebuild()
 TaskResultLineContactPhone.model_rebuild()
+TaskResultLineCheck.model_rebuild()
+ListExportMemberLine.model_rebuild()
+ListExportMemberLineCustomColumnsItem.model_rebuild()
+ListExportPendingLine.model_rebuild()
+ListExportPendingLineCustomColumnsItem.model_rebuild()
+ListExportLine.model_rebuild()
 EnrichCompanyData.model_rebuild()
 SearchPeopleData.model_rebuild()
 SearchPeopleDataMetadata.model_rebuild()

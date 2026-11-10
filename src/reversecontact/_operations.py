@@ -171,7 +171,7 @@ ALIASES: dict[str, str] = {
     "object": "object",
     "entity": "entity",
     "field": "field",
-    "suggestions": "suggestions",
+    "completions": "completions",
     "label": "label",
     "speciality_count": "specialityCount",
     "webhook_id": "webhookId",
@@ -261,6 +261,7 @@ ALIASES: dict[str, str] = {
     "self": "self",
     "operation": "operation",
     "not_run_for_credits": "notRunForCredits",
+    "suggestions": "suggestions",
 }
 
 OPERATIONS = {
@@ -330,9 +331,9 @@ OPERATIONS = {
         text=False,
         poll=False,
     ),
-    "searchPeopleAutoSuggestion": Operation(
+    "searchPeopleAutoCompletionFields": Operation(
         method="POST",
-        path="/v2/search/people/auto-suggestion",
+        path="/v2/search/people/auto-completion-fields",
         has_body=True,
         lookup=False,
         idempotency=False,
@@ -697,6 +698,17 @@ OPERATIONS = {
         method="GET",
         path="/v2/usage",
         has_body=False,
+        lookup=False,
+        idempotency=False,
+        list_idempotency=False,
+        import_operation=False,
+        text=False,
+        poll=False,
+    ),
+    "searchPeopleAutoSuggestion": Operation(
+        method="POST",
+        path="/v2/search/people/auto-suggestion",
+        has_body=True,
         lookup=False,
         idempotency=False,
         list_idempotency=False,

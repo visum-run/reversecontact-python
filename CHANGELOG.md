@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.0 (2026-11-10)
+
+- Search autocomplete is now `search.people_auto_completion_fields`: it calls `POST /v2/search/people/auto-completion-fields`, the new path of the endpoint, and reads the values under `data.completions` (`object: "search_auto_completions"`). The request does not change.
+- `search.people_auto_suggestion` is deprecated. It keeps working as before: it calls the former path, which still answers, and returns the values under `suggestions` (`SearchPeopleAutoSuggestionData`).
+
 ## 0.4.2 (2026-11-10)
 
 - `search.people_auto_suggestion` completes eight more People filters from what the profiles hold, most common first: `field` takes `languages`, `positionTitle`, `currentPositionTitle`, `companyName`, `currentCompanyName`, `schoolName`, `city` and `region` besides `skills`, `industry`, `countryCode` and `area`. Each name is the filter the value goes back into (`city` and `region` are `location.city` and `location.region`). These values come in lowercase, as the profiles are indexed (`software engineer`, `sao paulo`), and their `label` is the value itself.

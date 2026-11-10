@@ -151,7 +151,9 @@ from ._generated import (
     SearchOrganizationsPromptData,
     SearchOrganizationsPromptDataInterpretation,
     SearchOrganizationsPromptDataMetadata,
-    SearchPeopleAutoSuggestionBody,
+    SearchPeopleAutoCompletionBody,
+    SearchPeopleAutoCompletionData,
+    SearchPeopleAutoCompletionDataCompletionsItem,
     SearchPeopleAutoSuggestionData,
     SearchPeopleAutoSuggestionDataSuggestionsItem,
     SearchPeopleBody,
@@ -199,6 +201,9 @@ from ._generated import (
 )
 from ._generated import CompanyFull as Company
 from ._generated import PersonFull as Person
+
+# Deprecated: the former name of SearchPeopleAutoCompletionBody.
+from ._generated import SearchPeopleAutoCompletionBody as SearchPeopleAutoSuggestionBody
 
 # Deprecated: the former name of TaskAckData.
 from ._generated import TaskAckData as JobAckData
@@ -358,6 +363,9 @@ __all__ = [
     "SearchOrganizationsPromptData",
     "SearchOrganizationsPromptDataInterpretation",
     "SearchOrganizationsPromptDataMetadata",
+    "SearchPeopleAutoCompletionBody",
+    "SearchPeopleAutoCompletionData",
+    "SearchPeopleAutoCompletionDataCompletionsItem",
     "SearchPeopleAutoSuggestionBody",
     "SearchPeopleAutoSuggestionData",
     "SearchPeopleAutoSuggestionDataSuggestionsItem",

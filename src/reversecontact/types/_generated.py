@@ -772,16 +772,16 @@ class SearchPeopleCountData(Model):
     count: int | None = Field(None, alias="count")
 
 
-class SearchPeopleAutoSuggestionData(Model):
+class SearchPeopleAutoCompletionData(Model):
     object: str | None = Field(None, alias="object")
     entity: str | None = Field(None, alias="entity")
     field: str | None = Field(None, alias="field")
-    suggestions: builtins.list[SearchPeopleAutoSuggestionDataSuggestionsItem | None] | None = Field(
-        None, alias="suggestions"
+    completions: builtins.list[SearchPeopleAutoCompletionDataCompletionsItem | None] | None = Field(
+        None, alias="completions"
     )
 
 
-class SearchPeopleAutoSuggestionDataSuggestionsItem(Model):
+class SearchPeopleAutoCompletionDataCompletionsItem(Model):
     value: str | None = Field(None, alias="value")
     label: str | None = Field(None, alias="label")
 
@@ -1237,7 +1237,7 @@ class SearchPeopleCountBodyLocation(Model):
     city: str | builtins.list[str | None] | None = Field(None, alias="city")
 
 
-class SearchPeopleAutoSuggestionBody(Model):
+class SearchPeopleAutoCompletionBody(Model):
     field: str | None = Field(None, alias="field")
     query: str | None = Field(None, alias="query")
     limit: int | None = Field(None, alias="limit")
@@ -1958,6 +1958,20 @@ class CancelTaskDataLinks(Model):
     operation: str | None = Field(None, alias="operation")
 
 
+class SearchPeopleAutoSuggestionData(Model):
+    object: str | None = Field(None, alias="object")
+    entity: str | None = Field(None, alias="entity")
+    field: str | None = Field(None, alias="field")
+    suggestions: builtins.list[SearchPeopleAutoSuggestionDataSuggestionsItem | None] | None = Field(
+        None, alias="suggestions"
+    )
+
+
+class SearchPeopleAutoSuggestionDataSuggestionsItem(Model):
+    value: str | None = Field(None, alias="value")
+    label: str | None = Field(None, alias="label")
+
+
 PersonLocation.model_rebuild()
 EnrichedPersonLight.model_rebuild()
 PersonFull.model_rebuild()
@@ -2031,8 +2045,8 @@ SearchOrganizationsFiltersFollowersCount.model_rebuild()
 SearchOrganizationsFiltersLocation.model_rebuild()
 SearchOrganizationsCountData.model_rebuild()
 SearchPeopleCountData.model_rebuild()
-SearchPeopleAutoSuggestionData.model_rebuild()
-SearchPeopleAutoSuggestionDataSuggestionsItem.model_rebuild()
+SearchPeopleAutoCompletionData.model_rebuild()
+SearchPeopleAutoCompletionDataCompletionsItem.model_rebuild()
 CheckPersonData.model_rebuild()
 CheckCompanyData.model_rebuild()
 TaskAckData.model_rebuild()
@@ -2068,7 +2082,7 @@ SearchPeopleCountBodyCurrentCompanyEmployeeCountRange.model_rebuild()
 SearchPeopleCountBodyTotalExperienceMonths.model_rebuild()
 SearchPeopleCountBodyExperienceItem.model_rebuild()
 SearchPeopleCountBodyLocation.model_rebuild()
-SearchPeopleAutoSuggestionBody.model_rebuild()
+SearchPeopleAutoCompletionBody.model_rebuild()
 SearchOrganizationsBody.model_rebuild()
 SearchOrganizationsBodyEmployeeCountRange.model_rebuild()
 SearchOrganizationsBodyFoundedYear.model_rebuild()
@@ -2154,3 +2168,5 @@ CancelTaskDataProgress.model_rebuild()
 CancelTaskDataCredits.model_rebuild()
 CancelTaskDataError.model_rebuild()
 CancelTaskDataLinks.model_rebuild()
+SearchPeopleAutoSuggestionData.model_rebuild()
+SearchPeopleAutoSuggestionDataSuggestionsItem.model_rebuild()

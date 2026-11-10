@@ -63,7 +63,7 @@ Keep API keys on your server. Both `rc_*` API keys and `oat_*` tokens work; the 
 | Company search | `search.organizations`, `search.organizations_by_prompt` | `client.search.organizations(company_name="Acme", per_page=10)` |
 | Search iterators | `search.iter_people`, `search.iter_people_by_prompt`, `search.iter_people_lookalike`, `search.iter_organizations`, `search.iter_organizations_by_prompt` | `client.search.iter_people(first_name="Jane", max_results=10)` |
 | Counts (free) | `search.count_people`, `search.count_organizations` | `client.search.count_organizations(company_name="Acme")` |
-| Auto-suggestion (free) | `search.people_auto_suggestion` | `client.search.people_auto_suggestion(field="skills", query="pyth")` |
+| Auto-completion (free) | `search.people_auto_completion_fields` | `client.search.people_auto_completion_fields(field="skills", query="pyth")` |
 | Filter catalogs (free) | `search.people_fields`, `search.organizations_fields` | `client.search.people_fields()` |
 | Contact discovery (task) | `contact.find_email`, `contact.find_phone`, `contact.verify_email` | `client.contact.verify_email(email="jane@example.com")` |
 | Tasks (`jobs` is a deprecated alias) | `tasks.retrieve`, `tasks.wait` | `client.tasks.retrieve("saved-task-id", wait=20)` |

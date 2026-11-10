@@ -734,7 +734,7 @@ class Search(SyncResource):
             models.SearchPeopleCountData.model_validate,
         )
 
-    def people_auto_suggestion(
+    def people_auto_completion_fields(
         self,
         *,
         field: (str | NotGiven | None) = NOT_GIVEN,
@@ -744,14 +744,14 @@ class Search(SyncResource):
         max_retries: int | None = None,
         headers: Mapping[str, str] | None = None,
         **extra: object,
-    ) -> Result[models.SearchPeopleAutoSuggestionData]:
-        """Call searchPeopleAutoSuggestion. Extra arguments pass through."""
+    ) -> Result[models.SearchPeopleAutoCompletionData]:
+        """Call searchPeopleAutoCompletionFields. Extra arguments pass through."""
         return self._result(
-            OPERATIONS["searchPeopleAutoSuggestion"],
+            OPERATIONS["searchPeopleAutoCompletionFields"],
             {},
             parameters({"field": field, "query": query, "limit": limit}, extra),
             RequestOptions(timeout, max_retries, headers),
-            models.SearchPeopleAutoSuggestionData.model_validate,
+            models.SearchPeopleAutoCompletionData.model_validate,
         )
 
     def organizations(
@@ -977,6 +977,29 @@ class Search(SyncResource):
             parameters({}, extra),
             RequestOptions(timeout, max_retries, headers),
             models.SearchFieldsData.model_validate,
+        )
+
+    def people_auto_suggestion(
+        self,
+        *,
+        field: (str | NotGiven | None) = NOT_GIVEN,
+        query: (str | NotGiven | None) = NOT_GIVEN,
+        limit: (int | NotGiven | None) = NOT_GIVEN,
+        timeout: Timeout | None = None,
+        max_retries: int | None = None,
+        headers: Mapping[str, str] | None = None,
+        **extra: object,
+    ) -> Result[models.SearchPeopleAutoSuggestionData]:
+        """Deprecated: use `people_auto_completion_fields`.
+
+        This one calls the former path and keeps its answer.
+        """
+        return self._result(
+            OPERATIONS["searchPeopleAutoSuggestion"],
+            {},
+            parameters({"field": field, "query": query, "limit": limit}, extra),
+            RequestOptions(timeout, max_retries, headers),
+            models.SearchPeopleAutoSuggestionData.model_validate,
         )
 
 

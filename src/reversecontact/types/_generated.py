@@ -434,6 +434,7 @@ class TaskResultLine(Model):
     status: str | None = Field(None, alias="status")
     message: str | None = Field(None, alias="message")
     credits_consumed: int | float | None = Field(None, alias="creditsConsumed")
+    source: str | None = Field(None, alias="source")
     person: EnrichedPersonFull | EnrichedPersonLight | None = Field(None, alias="person")
     is_full_profile: bool | None = Field(None, alias="isFullProfile")
     linkedin_url: str | None = Field(None, alias="linkedinUrl")

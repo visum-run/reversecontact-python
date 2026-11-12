@@ -95,6 +95,7 @@ ALIASES: dict[str, str] = {
     "status": "status",
     "message": "message",
     "credits_consumed": "creditsConsumed",
+    "source": "source",
     "contact_email": "contactEmail",
     "value": "value",
     "personal_value": "personalValue",
@@ -115,7 +116,6 @@ ALIASES: dict[str, str] = {
     "company": "company",
     "custom_columns": "customColumns",
     "signal": "signal",
-    "source": "source",
     "data": "data",
     "metadata": "metadata",
     "per_page": "perPage",
@@ -261,6 +261,7 @@ ALIASES: dict[str, str] = {
     "self": "self",
     "operation": "operation",
     "not_run_for_credits": "notRunForCredits",
+    "live_if_older_than_days": "liveIfOlderThanDays",
     "suggestions": "suggestions",
 }
 

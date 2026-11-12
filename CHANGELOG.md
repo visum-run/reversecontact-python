@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.1 (2026-11-12)
+
+- `bulk.enrich_persons` takes `live_if_older_than_days`, a live mode of its own that needs no `live=True`: each item with a profile URL (`linkedinUrl`) reads our database first, and is scraped live only when the stored profile is that many days old or more, undated, or missing. A recent profile costs 1 credit (the fetch price) instead of 2; the task still reserves the live price and gives the difference back when it settles. Each `TaskResultLine` of such a task carries `source`, `cache` or `live` (null when no profile was delivered).
+
 ## 0.5.0 (2026-11-10)
 
 - Search autocomplete is now `search.people_auto_completion_fields`: it calls `POST /v2/search/people/auto-completion-fields`, the new path of the endpoint, and reads the values under `data.completions` (`object: "search_auto_completions"`). The request does not change.

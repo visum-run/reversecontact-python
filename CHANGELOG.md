@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.2 (2026-11-18)
+
+- `usage.retrieve` returns `quotas.workspace.bulk_share`: the share of the per-minute rate limit, in percent, that the background tasks of the workspace (Bulk tasks, List imports and Search exports) can take. It was a fixed 80% and is now a workspace setting, from 10 to 90, changed in the app under Settings, Workspace, General. The API only reads it.
+
 ## 0.5.1 (2026-11-12)
 
 - `bulk.enrich_persons` takes `live_if_older_than_days`, a live mode of its own that needs no `live=True`: each item with a profile URL (`linkedinUrl`) reads our database first, and is scraped live only when the stored profile is that many days old or more, undated, or missing. A recent profile costs 1 credit (the fetch price) instead of 2; the task still reserves the live price and gives the difference back when it settles. Each `TaskResultLine` of such a task carries `source`, `cache` or `live` (null when no profile was delivered).

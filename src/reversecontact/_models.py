@@ -33,6 +33,7 @@ class WorkspaceQuota(Model):
     allow_daily_overcost: bool | None = Field(None, alias="allowDailyOvercost")
     minute_rate_limit: LimitInfo | None = Field(None, alias="minuteRateLimit")
     daily_limit: LimitInfo | None = Field(None, alias="dailyLimit")
+    bulk_share: int | None = Field(None, alias="bulkShare")
 
 
 class KeyCreditLimits(Model):

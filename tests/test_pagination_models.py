@@ -204,6 +204,7 @@ async def test_null_quotas_preserved(h):
             "allowDailyOvercost": None,
             "minuteRateLimit": None,
             "dailyLimit": None,
+            "bulkShare": None,
         },
         "key": {"creditLimits": {"daily": None, "monthly": None, "total": {"nextReset": None}}},
     }
@@ -214,6 +215,7 @@ async def test_null_quotas_preserved(h):
     assert response.data is None
     assert response.quotas.to_dict() == payload
     assert response.quotas.workspace.credits.total is None
+    assert response.quotas.workspace.bulk_share is None
 
 
 async def test_unexpected_null_array_elements(h):

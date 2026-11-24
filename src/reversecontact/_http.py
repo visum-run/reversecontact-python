@@ -390,7 +390,9 @@ class SyncTransport(TransportBase):
                 )
                 # httpx merges injected client defaults during build_request.
                 request.headers.pop("X-Request-Origin", None)
-                response = self.client.send(request, stream=True)
+                # A moved route answers 308: follow it with the same method and body,
+                # whatever the client's own default.
+                response = self.client.send(request, stream=True, follow_redirects=True)
                 response.read()
                 parsed = parse_response(response, op)
                 self.log(op, attempt, response, None, parsed.body)
@@ -487,7 +489,9 @@ class AsyncTransport(TransportBase):
                 )
                 # httpx merges injected client defaults during build_request.
                 request.headers.pop("X-Request-Origin", None)
-                response = await self.client.send(request, stream=True)
+                # A moved route answers 308: follow it with the same method and body,
+                # whatever the client's own default.
+                response = await self.client.send(request, stream=True, follow_redirects=True)
                 await response.aread()
                 parsed = parse_response(response, op)
                 self.log(op, attempt, response, None, parsed.body)

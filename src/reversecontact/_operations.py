@@ -345,7 +345,7 @@ OPERATIONS = {
     ),
     "searchOrganizations": Operation(
         method="POST",
-        path="/v2/search/organizations",
+        path="/v2/search/companies",
         has_body=True,
         lookup=False,
         idempotency=False,
@@ -356,7 +356,7 @@ OPERATIONS = {
     ),
     "searchOrganizationsByPrompt": Operation(
         method="POST",
-        path="/v2/search/organizations/prompt",
+        path="/v2/search/companies/prompt",
         has_body=True,
         lookup=False,
         idempotency=False,
@@ -367,7 +367,7 @@ OPERATIONS = {
     ),
     "countOrganizations": Operation(
         method="POST",
-        path="/v2/search/organizations/count",
+        path="/v2/search/companies/count",
         has_body=True,
         lookup=False,
         idempotency=False,
@@ -389,7 +389,7 @@ OPERATIONS = {
     ),
     "searchOrganizationsAvailableFields": Operation(
         method="GET",
-        path="/v2/search/organizations/available-fields",
+        path="/v2/search/companies/available-fields",
         has_body=False,
         lookup=False,
         idempotency=False,

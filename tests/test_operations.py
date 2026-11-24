@@ -21,7 +21,8 @@ OPERATIONS = {
     operation["operationId"]: (method, path, operation)
     for path, methods in SPEC["paths"].items()
     for method, operation in methods.items()
-    if "operationId" in operation
+    # A deprecated operation is a former path that redirects to its successor.
+    if "operationId" in operation and not operation.get("deprecated")
 }
 
 

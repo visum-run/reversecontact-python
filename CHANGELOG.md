@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.0 (2026-11-24)
+
+- Organization Search now calls `/v2/search/companies`, its canonical path: `search.organizations`, `search.organizations_by_prompt`, `search.count_organizations` and `search.organizations_fields` keep their names, requests and answers. The former `/v2/search/organizations` paths answer a `308` redirect to the same route under `/v2/search/companies`, never billed.
+- Every request now follows redirects, whatever the `http_client` passed in: a `308` is resent with the same method and body. Versions up to 0.5.2 do not follow it: their organization search methods fail on the former paths until upgraded.
+
 ## 0.5.2 (2026-11-18)
 
 - `usage.retrieve` returns `quotas.workspace.bulk_share`: the share of the per-minute rate limit, in percent, that the background tasks of the workspace (Bulk tasks, List imports and Search exports) can take. It was a fixed 80% and is now a workspace setting, from 10 to 90, changed in the app under Settings, Workspace, General. The API only reads it.

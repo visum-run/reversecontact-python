@@ -115,7 +115,9 @@ for name, schema in SCHEMAS.items():
 ops = {}
 for path, methods in SPEC["paths"].items():
     for method, operation in methods.items():
-        if "operationId" not in operation:
+        # A deprecated operation is a former path that redirects to its
+        # successor: no SDK method calls it.
+        if "operationId" not in operation or operation.get("deprecated"):
             continue
         name = operation["operationId"]
         entry = MAP[name]
